@@ -57,6 +57,17 @@ export const BILLING_ROUTES = {
   SEATS: "/billing/seats",
 } as const;
 
+/** Activity Log — tenant audit trail. */
+export const AUDIT_LOG_ROUTES = {
+  LIST: "/audit-logs",
+  EXPORT: "/audit-logs/export",
+} as const;
+
+/** Dataverse audit trail — Power Platform environment audit logs. */
+export const DATAVERSE_LOGS_ROUTES = {
+  LIST: "/dataverse-logs",
+} as const;
+
 /** Support settings page — Zoho Desk-backed tickets. */
 export const SUPPORT_ROUTES = {
   TICKETS: "/support/tickets",
@@ -174,5 +185,7 @@ export const API_ROUTES = {
   INVITATIONS: INVITATION_ROUTES,
   BILLING: BILLING_ROUTES,
   SUPPORT: SUPPORT_ROUTES,
+  AUDIT_LOGS: AUDIT_LOG_ROUTES,
+  DATAVERSE_LOGS: DATAVERSE_LOGS_ROUTES,
   ...POWER_PLATFORM_ROUTES,
 } as const;
