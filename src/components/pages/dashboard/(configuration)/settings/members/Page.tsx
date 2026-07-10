@@ -13,14 +13,14 @@ import { StatsCarousel } from "@/src/components/ui/display/StatsCarousel";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useTenantMembers, useInvitations, useInvalidateMembers } from "@/src/hooks/data/useMembers";
 import { useBillingState } from "@/src/hooks/data/useBilling";
-import { removeTenantMember } from "@/src/services/tenants/tenantApi";
+import { removeTenantMember, disableMemberMfa } from "@/src/services/tenants/tenantApi";
 import { revokeInvitation, resendInvitation } from "@/src/services/invitations/invitationApi";
 import { RoleBadge } from "./RoleBadge";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { EditRoleModal } from "./EditRoleModal";
 import type { TenantMember } from "@/src/services/tenants/tenantApi";
 import type { Invitation } from "@/src/services/invitations/invitationApi";
-import { Users, Mail, CheckCircle2, UserPlus, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { Users, Mail, CheckCircle2, UserPlus, Pencil, Trash2, RefreshCw, ShieldOff } from "lucide-react";
 
 const DEFAULT_SEAT_CAP = 5;
 type MembersTab = "members" | "invited";
@@ -54,7 +54,9 @@ export default function Page() {
   const [editTarget, setEditTarget] = useState<TenantMember | null>(null);
   const [removeTarget, setRemoveTarget] = useState<TenantMember | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<Invitation | null>(null);
+  const [disableMfaTarget, setDisableMfaTarget] = useState<TenantMember | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [disablingMfa, setDisablingMfa] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
 
   const activeMembers = members.filter((m) => m.isActive !== false);
@@ -107,6 +109,23 @@ export default function Page() {
       toast.error("Failed to revoke invitation", { description: err instanceof Error ? err.message : "Please try again." });
     } finally {
       setRemoving(false);
+    }
+  };
+
+  const handleDisableMfaConfirm = async () => {
+    if (!disableMfaTarget || !user?.currentTenantId) return;
+    setDisablingMfa(true);
+    try {
+      await disableMemberMfa(user.currentTenantId, disableMfaTarget.id);
+      toast.success("Two-factor authentication disabled", {
+        description: `${disableMfaTarget.fullName} can now sign in without a code.`,
+      });
+      setDisableMfaTarget(null);
+      await refetchMembers();
+    } catch (err) {
+      toast.error("Couldn't disable 2FA", { description: err instanceof Error ? err.message : "Please try again." });
+    } finally {
+      setDisablingMfa(false);
     }
   };
 
@@ -237,6 +256,17 @@ export default function Page() {
                 render: (_, m) =>
                   isOwner && !isProtectedRow(m) ? (
                     <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                      {m.mfaEnabled && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setDisableMfaTarget(m)}
+                          aria-label="Disable two-factor authentication"
+                          title="Disable two-factor authentication"
+                        >
+                          <ShieldOff size={13} />
+                        </Button>
+                      )}
                       <Button variant="ghost" size="icon-sm" onClick={() => setEditTarget(m)} aria-label="Change role">
                         <Pencil size={13} />
                       </Button>
@@ -340,6 +370,31 @@ export default function Page() {
       >
         <p className="text-sm text-foreground">
           Remove <span className="font-semibold">{removeTarget?.fullName}</span> from this workspace?
+        </p>
+      </Modal>
+
+      <Modal
+        isOpen={!!disableMfaTarget}
+        onClose={() => setDisableMfaTarget(null)}
+        title="Disable two-factor authentication"
+        subtitle="Use this if a teammate is locked out of their authenticator app."
+        variant="danger"
+        size="sm"
+        loading={disablingMfa}
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setDisableMfaTarget(null)} disabled={disablingMfa}>
+              Cancel
+            </Button>
+            <Button variant="danger" size="sm" onClick={handleDisableMfaConfirm} loading={disablingMfa}>
+              Disable 2FA
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-foreground">
+          Disable two-factor authentication for <span className="font-semibold">{disableMfaTarget?.fullName}</span>?
+          They&apos;ll be able to sign in with just their Microsoft account until they set it up again.
         </p>
       </Modal>
 

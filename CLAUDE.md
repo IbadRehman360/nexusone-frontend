@@ -1,4 +1,9 @@
-@AGENTS.md
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
 
 # NexusOne Frontend — Rewrite: Project Context & Conventions
 
@@ -74,5 +79,3 @@ src/app/dashboard/<section>/<page>/page.tsx — route file, re-exports Page
 **Nothing left unstarted** in the dashboard page tree as of last full survey — if you're picking this up cold, re-run a quick stub-check before trusting this list, since pages can regress or new routes can appear between sessions.
 
 ## 5. Reference apps & backend
-
-<!-- Left intentionally empty — fill in the old-app / backend reference details here. -->

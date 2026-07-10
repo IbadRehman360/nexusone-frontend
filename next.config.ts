@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone server output — required by azure-pipelines-appservice.yml,
+  // which packages .next/standalone and runs it directly via
+  // `node .next/standalone/server.js` on Azure App Service.
+  output: "standalone",
   images: {
     unoptimized: true,
   },

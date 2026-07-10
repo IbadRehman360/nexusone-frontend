@@ -23,6 +23,7 @@ export interface TenantMember {
   joinedAt: string | null;
   invitedAt: string | null;
   lastActiveAt: string | null;
+  mfaEnabled: boolean;
 }
 
 export interface TenantRole {
@@ -52,6 +53,11 @@ export const updateMemberRole = async (tenantId: string, userId: string, roleId:
 
 export const removeTenantMember = async (tenantId: string, userId: string): Promise<void> => {
   await apiClient.delete(TENANT_ROUTES.MEMBER(tenantId, userId));
+};
+
+/** Recovery path — Owner disabling a locked-out teammate's 2FA. No code re-verification needed (server capability-checks the caller). */
+export const disableMemberMfa = async (tenantId: string, userId: string): Promise<void> => {
+  await apiClient.post(TENANT_ROUTES.DISABLE_MEMBER_MFA(tenantId, userId));
 };
 
 export const initiateConsent = async (azureTenantId: string): Promise<{ authorizationUrl: string }> => {

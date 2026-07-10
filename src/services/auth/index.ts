@@ -1,6 +1,7 @@
 import apiClient from "../client";
 import { API_ROUTES } from "../routes";
 import { setCurrentTenantId } from "@/src/lib/tenantContext";
+import { unwrap } from "../unwrap";
 
 export interface SubscriptionView {
   status: "TRIAL" | "GRACE" | "LOCKED" | "ACTIVE";
@@ -29,6 +30,8 @@ export interface AuthUser {
   subscription?: SubscriptionView | null;
   /** Live lifecycle status of the current tenant — null when there's no current tenant. */
   tenantStatus?: TenantStatus | null;
+  /** Opt-in TOTP 2FA — whether it's currently enabled for this account. */
+  mfaEnabled?: boolean;
 }
 
 /**
@@ -61,4 +64,32 @@ export const logout = async (): Promise<void> => {
 /** Marks the Welcome modal as seen for the current tenant (server-tracked, survives reload/relogin). */
 export const acknowledgeWelcome = async (): Promise<void> => {
   await apiClient.post(API_ROUTES.AUTH.ACKNOWLEDGE_WELCOME);
+};
+
+// ── 2FA (TOTP) ───────────────────────────────────────────────────────────────
+
+/**
+ * Completes a login held pending 2FA (after SSO or password auth succeeded
+ * but the account has mfaEnabled). Reads the pending session from the
+ * mfa_pending_token httpOnly cookie server-side — nothing else to pass here.
+ */
+export const verifyMfaLogin = async (code: string): Promise<{ mfaRequired: false; user: AuthUser }> => {
+  const response = await apiClient.post(API_ROUTES.AUTH.MFA_VERIFY, { code });
+  return unwrap(response.data);
+};
+
+/** Starts 2FA setup — returns a QR code (data URL) and a manual entry key. Not yet enabled until confirmed. */
+export const startMfaSetup = async (): Promise<{ qrCode: string; manualKey: string }> => {
+  const response = await apiClient.post(API_ROUTES.AUTH.MFA_SETUP);
+  return unwrap(response.data);
+};
+
+/** Confirms 2FA setup with a code from the authenticator app and enables it. */
+export const confirmMfaSetup = async (code: string): Promise<void> => {
+  await apiClient.post(API_ROUTES.AUTH.MFA_VERIFY_SETUP, { code });
+};
+
+/** Disables 2FA for the caller's own account — requires a current valid code. */
+export const disableMfa = async (code: string): Promise<void> => {
+  await apiClient.post(API_ROUTES.AUTH.MFA_DISABLE, { code });
 };

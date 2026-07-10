@@ -258,6 +258,7 @@ export const navSections: NavSection[] = [
     world: 'configuration',
     items: [
       { label: "Members",      href: "/dashboard/settings/members", icon: Users },
+      { label: "Security",     href: "/dashboard/settings/security", icon: Fingerprint },
       { label: "Billing & Plan", href: "/dashboard/settings/billing", icon: Sparkle },
       { label: "Support",      href: "/dashboard/settings/support", icon: Lifebuoy },
     ],

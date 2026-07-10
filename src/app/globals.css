@@ -704,6 +704,14 @@ button[data-slot="button"]:not([class*="destructive"]):not([class*="outline"]):n
   from { opacity: 0; transform: scale(0.8); }
   to   { opacity: 1; transform: scale(1); }
 }
+/* Rejected TOTP code — TotpInput.tsx */
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
 /* ── FAB button ── */
 .copilot-fab-wrapper {

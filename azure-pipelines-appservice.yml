@@ -1,0 +1,60 @@
+name: Azure App Service CI/CD
+
+pr:
+  branches:
+    include:
+      - main
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  azureSubscription: 'Azure_FunctionApp_Connection'
+  appName: 'nexusonefrontend'
+  nodeVersion: '20.x'
+
+jobs:
+- job: build_and_deploy
+  steps:
+  - checkout: self
+    submodules: true
+
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(nodeVersion)
+
+  - script: |
+      rm -f yarn.lock package-lock.json
+      yarn install
+    displayName: 'Install dependencies'
+
+  - script: |
+      yarn build
+      cp -r .next/static .next/standalone/.next/static
+      cp -r public .next/standalone/public
+    displayName: 'Build'
+    env:
+      NODE_ENV: production
+      BACKEND_URL: https://nexusonedevfunc-bqg4cwguc0f9egbg.eastus2-01.azurewebsites.net
+
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      replaceExistingArchive: true
+
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: $(azureSubscription)
+      appType: 'webAppLinux'
+      appName: $(appName)
+      package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      runtimeStack: 'NODE|20-lts'
+      startUpCommand: 'node .next/standalone/server.js'

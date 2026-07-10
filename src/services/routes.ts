@@ -16,6 +16,10 @@ export const AUTH_ROUTES = {
   ME: "/auth/me",
   LOGOUT: "/auth/logout",
   ACKNOWLEDGE_WELCOME: "/auth/welcome-acknowledged",
+  MFA_VERIFY: "/auth/mfa/verify",
+  MFA_SETUP: "/auth/mfa/setup",
+  MFA_VERIFY_SETUP: "/auth/mfa/verify-setup",
+  MFA_DISABLE: "/auth/mfa/disable",
 } as const;
 
 /** Presence + tenant member list used by the app-shell header/rail — not tied to any product module. */
@@ -32,6 +36,8 @@ export const TENANT_ROUTES = {
   ROLES: (id: string) => `/tenants/${id}/roles`,
   MEMBERS: (id: string) => `/tenants/${id}/members`,
   MEMBER: (id: string, userId: string) => `/tenants/${id}/members/${userId}`,
+  DISABLE_MEMBER_MFA: (id: string, userId: string) =>
+    `/tenants/${id}/members/${userId}/disable-mfa`,
 } as const;
 
 /** Invitations — pending invites into a tenant. */
