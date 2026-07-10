@@ -47,7 +47,12 @@ export default function Page() {
         <>
           {activeTab === "overview" && (
             <div className="space-y-4">
-              <PlansSection isOwner={isOwner} paidModules={state.paidModules ?? []} modulesInTrial={state.modulesInTrial ?? []} />
+              <PlansSection
+                isOwner={isOwner}
+                paidModules={state.paidModules ?? []}
+                modulesInTrial={state.modulesInTrial ?? []}
+                moduleBilling={state.moduleBilling ?? {}}
+              />
               <SeatCard isOwner={isOwner} />
             </div>
           )}

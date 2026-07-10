@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UserPlus } from "lucide-react";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
@@ -9,6 +9,8 @@ import { useTenantRoles, useInvalidateMembers } from "@/src/hooks/data/useMember
 import { createInvitation } from "@/src/services/invitations/invitationApi";
 import { useAuth } from "@/src/hooks/useAuth";
 
+const VIEWER_ROLE_NAME = "Viewer";
+
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,11 +18,22 @@ interface InviteMemberModalProps {
 
 export function InviteMemberModal({ isOpen, onClose }: InviteMemberModalProps) {
   const { user } = useAuth();
+  // During the trial, invited members can only be assigned Viewer — the
+  // backend enforces this too (assertTrialInviteAllowed); this just keeps
+  // the picker from showing choices that would 403.
+  const isTrial = user?.subscription?.status === "TRIAL";
   const { roles } = useTenantRoles();
   const invalidate = useInvalidateMembers();
   const [email, setEmail] = useState("");
   const [roleId, setRoleId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const viewerRole = roles.find((r) => r.name === VIEWER_ROLE_NAME);
+  useEffect(() => {
+    if (isTrial && viewerRole && roleId !== viewerRole.id) setRoleId(viewerRole.id);
+  }, [isTrial, viewerRole, roleId]);
+
+  const selectableRoles = isTrial ? roles.filter((r) => r.name === VIEWER_ROLE_NAME) : roles;
 
   const handleClose = () => {
     setEmail("");
@@ -70,9 +83,15 @@ export function InviteMemberModal({ isOpen, onClose }: InviteMemberModalProps) {
           variant="plain"
           value={roleId}
           onChange={setRoleId}
-          placeholder="Select a role"
-          options={roles.map((r) => ({ value: r.id, label: r.name }))}
+          placeholder={isTrial ? "Viewer" : "Select a role"}
+          options={selectableRoles.map((r) => ({ value: r.id, label: r.name }))}
+          disabled={isTrial}
         />
+        {isTrial && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            During the trial, invited members are automatically assigned the Viewer role.
+          </p>
+        )}
       </FormField>
     </CreateModal>
   );

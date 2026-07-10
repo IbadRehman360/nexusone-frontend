@@ -38,6 +38,10 @@ function lastActiveLabel(iso: string | null): string {
 export default function Page() {
   const { user } = useAuth();
   const isOwner = user?.tenantRole === "Owner";
+  // LOCKED (trial ended, nothing purchased) blocks invites entirely — there's
+  // no active subscription or trial window to invite anyone into.
+  const isLocked = user?.subscription?.status === "LOCKED";
+  const canInvite = isOwner && !isLocked;
   const { members, isLoading: membersLoading, refetch: refetchMembers } = useTenantMembers();
   const { invitations, isLoading: invitesLoading, refetch: refetchInvites } = useInvitations();
   const { state: billingState } = useBillingState();
@@ -58,6 +62,7 @@ export default function Page() {
   const seatCap = billingState?.invitesIncluded ?? DEFAULT_SEAT_CAP;
   const seatUsed = activeMembers.length + pendingInvites.length;
   const seatRemaining = Math.max(0, seatCap - seatUsed);
+  const atCap = seatRemaining <= 0;
 
   const roleOptions = useMemo(() => {
     const names = Array.from(new Set(members.map((m) => m.role)));
@@ -125,8 +130,14 @@ export default function Page() {
         description="Manage who has access to this workspace."
         breadcrumbs={[{ label: "Members", icon: Users }]}
         action={
-          isOwner ? (
-            <Button size="sm" leftIcon={<UserPlus size={14} />} onClick={() => setShowInvite(true)} disabled={seatRemaining <= 0}>
+          canInvite ? (
+            <Button
+              size="sm"
+              leftIcon={<UserPlus size={14} />}
+              onClick={() => setShowInvite(true)}
+              disabled={atCap}
+              title={atCap ? "Seat cap reached — revoke an invitation or buy more seats." : undefined}
+            >
               Invite member
             </Button>
           ) : undefined

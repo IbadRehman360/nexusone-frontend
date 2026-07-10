@@ -9,6 +9,7 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
 import { useDataverseLogs } from "@/src/hooks/data/useDataverseLogs";
+import { toCsv, downloadTextFile } from "@/src/lib/utils/csvExport";
 import { operationConfigFor, DATE_RANGE_OPTIONS } from "./operationConfig";
 import { LogDetailSlideOver } from "./LogDetailSlideOver";
 import type { DataverseLog } from "@/src/services/dataverseLogs/dataverseLogsApi";
@@ -48,18 +49,11 @@ export default function Page() {
   }, [logs, hideSystemLogs, search]);
 
   const handleExport = () => {
-    const header = ["Time", "Operation", "Entity", "Record", "User", "User Email"];
-    const lines = [header.join(",")];
-    for (const l of visibleLogs) {
-      lines.push([new Date(l.createdon).toLocaleString(), l.operationName, l.objectTypeName, l.objectName ?? "", l.userName, l.userEmail ?? ""].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
-    }
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `dataverse-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const csv = toCsv(
+      ["Time", "Operation", "Entity", "Record", "User", "User Email"],
+      visibleLogs.map((l) => [new Date(l.createdon).toLocaleString(), l.operationName, l.objectTypeName, l.objectName ?? "", l.userName, l.userEmail ?? ""]),
+    );
+    downloadTextFile(csv, `dataverse-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   return (
@@ -98,7 +92,7 @@ export default function Page() {
               {hideSystemLogs ? <EyeOff size={12} /> : <Eye size={12} />}
               {hideSystemLogs ? "System Logs Hidden" : "Showing All Records"}
             </button>
-            <Button variant="outline" size="sm" leftIcon={<Download size={13} />} onClick={handleExport} disabled={visibleLogs.length === 0}>
+            <Button variant="outline" size="sm" leftIcon={<Download size={14} />} onClick={handleExport} disabled={visibleLogs.length === 0}>
               Export CSV ({visibleLogs.length})
             </Button>
             <Button variant="outline" size="sm" leftIcon={<RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />} onClick={() => refetch()} disabled={!environmentUrl}>

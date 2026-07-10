@@ -6,6 +6,10 @@ export interface SubscriptionView {
   status: "TRIAL" | "GRACE" | "LOCKED" | "ACTIVE";
   daysRemaining: number | null;
   hoursRemaining: number | null;
+  /** Effective modules unlocked right now (paid ∪ still-in-trial ∪ in-grace). */
+  modules: string[];
+  /** Modules actually paid for. */
+  paidModules: string[];
   modulesInTrial: string[];
   anyModuleInTrial: boolean;
   modulesInGrace: string[];

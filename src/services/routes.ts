@@ -41,6 +41,15 @@ export const INVITATION_ROUTES = {
   REVOKE: (id: string) => `/invitations/${id}`,
 } as const;
 
+/** Dev-only role/module-scenario impersonation — see backend ImpersonationService. Not reachable outside development. */
+export const DEV_ROUTES = {
+  IMPERSONATE_STATUS: "/dev/impersonate",
+  START_ROLE: "/dev/impersonate",
+  STOP_ROLE: "/dev/impersonate",
+  START_MODULE_SCENARIO: "/dev/impersonate/module-scenario",
+  STOP_MODULE_SCENARIO: "/dev/impersonate/module-scenario",
+} as const;
+
 /** Billing & Plan settings page — subscription, invoices, payment methods, seats. */
 export const BILLING_ROUTES = {
   PLANS: "/billing/plans",
@@ -50,6 +59,7 @@ export const BILLING_ROUTES = {
   CANCEL: "/billing/cancel",
   REACTIVATE: "/billing/reactivate",
   MODULE_CANCEL: (module: string) => `/billing/modules/${module}/cancel`,
+  MODULE_RETRY_INVOICE: (module: string) => `/billing/modules/${module}/retry-invoice`,
   RETRY_INVOICE: "/billing/retry-invoice",
   INVOICES: "/billing/invoices",
   PAYMENT_METHODS: "/billing/payment-methods",
@@ -170,8 +180,138 @@ export const POWER_PLATFORM_ROUTES = {
   },
 } as const;
 
-// TODO: ENTRA_ID_ROUTES — add here once the Entra ID module is ported, then spread below.
-// TODO: DATA_PROTECTION_ROUTES — add here once the Data Protection module is ported, then spread below.
+/** Entra ID module API calls. */
+export const ENTRA_ID_ROUTES = {
+  APP_REGISTRATIONS: {
+    GET_ALL: "/entra-id/app-registrations",
+    GET_BY_ID: (id: string) => `/entra-id/app-registrations/${id}`,
+    CREDENTIALS: (id: string) => `/entra-id/app-registrations/${id}/credentials`,
+    PERMISSIONS: (id: string) => `/entra-id/app-registrations/${id}/permissions`,
+    AUTHENTICATION: (id: string) => `/entra-id/app-registrations/${id}/authentication`,
+    EXPOSED_API: (id: string) => `/entra-id/app-registrations/${id}/exposed-api`,
+    ROLES_ADMINS: (id: string) => `/entra-id/app-registrations/${id}/roles-admins`,
+  },
+  ENTERPRISE_APPS: {
+    GET_ALL: "/entra-id/enterprise-apps",
+    GET_BY_ID: (id: string) => `/entra-id/enterprise-apps/${id}`,
+    ACCESS: (id: string) => `/entra-id/enterprise-apps/${id}/access`,
+    SSO: (id: string) => `/entra-id/enterprise-apps/${id}/sso`,
+    PERMISSIONS: (id: string) => `/entra-id/enterprise-apps/${id}/permissions`,
+    ACTIVITY: (id: string) => `/entra-id/enterprise-apps/${id}/activity`,
+  },
+  GROUPS: {
+    GET_ALL: "/entra-id/groups",
+    GET_DETAIL: (id: string) => `/entra-id/groups/${id}/detail`,
+  },
+  ENTRA_USERS: {
+    GET_ALL: "/entra-id/users",
+    GET_BY_ID: (id: string) => `/entra-id/users/${id}`,
+    GROUPS: (id: string) => `/entra-id/users/${id}/groups`,
+    APP_ASSIGNMENTS: (id: string) => `/entra-id/users/${id}/app-assignments`,
+    OWNED_OBJECTS: (id: string) => `/entra-id/users/${id}/owned-objects`,
+  },
+  LICENSES: {
+    GET_ALL: "/entra-id/licenses",
+    GET_TIER: "/entra-id/licenses/tier",
+    GET_USERS: "/entra-id/licenses/users",
+    GET_USAGE: "/entra-id/licenses/usage",
+    GET_COSTS: "/entra-id/licenses/costs",
+    GET_USER_DETAIL: (userId: string) => `/entra-id/licenses/users/${userId}`,
+    ASSIGN: "/entra-id/licenses/assign",
+    REVOKE: "/entra-id/licenses/revoke",
+  },
+  SIGN_IN_LOGS: {
+    GET_ALL: "/entra-id/sign-in-logs",
+    EXPORT: "/entra-id/sign-in-logs/export",
+  },
+  MFA: {
+    GET_ALL: "/entra-id/mfa",
+    GET_BY_ID: (id: string) => `/entra-id/mfa/${id}`,
+    POSTURE: "/entra-id/mfa/posture",
+    POLICY: "/entra-id/mfa/policy",
+  },
+  SSPR: {
+    GET_ALL: "/entra-id/sspr",
+    GET_BY_ID: (id: string) => `/entra-id/sspr/${id}`,
+    CONFIG: "/entra-id/sspr/config",
+    USAGE: "/entra-id/sspr/usage",
+  },
+  CONDITIONAL_ACCESS: {
+    GET_ALL: "/entra-id/conditional-access",
+    GET_BY_ID: (id: string) => `/entra-id/conditional-access/${id}`,
+    CONDITIONS: (id: string) => `/entra-id/conditional-access/${id}/conditions`,
+    CONTROLS: (id: string) => `/entra-id/conditional-access/${id}/controls`,
+    COVERAGE: (id: string) => `/entra-id/conditional-access/${id}/coverage`,
+    ACTIVITY: (id: string) => `/entra-id/conditional-access/${id}/activity`,
+    COMPARE: "/entra-id/conditional-access/compare",
+  },
+  CONDITIONAL_ACCESS_BACKUPS: {
+    LIST: "/entra-id/conditional-access-backups",
+    CREATE: "/entra-id/conditional-access-backups",
+    DIFF: "/entra-id/conditional-access-backups/diff",
+    GET_BY_ID: (id: string) => `/entra-id/conditional-access-backups/${id}`,
+    RESTORE: (id: string) => `/entra-id/conditional-access-backups/${id}/restore`,
+    DELETE: (id: string) => `/entra-id/conditional-access-backups/${id}`,
+  },
+  PIM: {
+    POSTURE: "/entra-id/pim/posture",
+    PRINCIPAL: (id: string) => `/entra-id/pim/principals/${id}`,
+    COMPARE: "/entra-id/pim/compare",
+  },
+  IDENTITY_PROTECTION: {
+    QUEUE: "/entra-id/identity-protection/queue",
+    USER: (id: string) => `/entra-id/identity-protection/users/${id}`,
+    COMPARE: "/entra-id/identity-protection/compare",
+  },
+  ACCESS_REVIEWS: {
+    CATALOG: "/entra-id/access-reviews/catalog",
+    CAMPAIGN: (id: string) => `/entra-id/access-reviews/${id}`,
+    COMPARE: "/entra-id/access-reviews/compare",
+  },
+  ENTITLEMENT_MANAGEMENT: {
+    CATALOG: "/entra-id/entitlement-management/catalog",
+    PACKAGE: (id: string) => `/entra-id/entitlement-management/${id}`,
+    COMPARE: "/entra-id/entitlement-management/compare",
+  },
+  CSA: {
+    ATTRIBUTES: "/entra-id/csa/attributes",
+    USERS: "/entra-id/csa/users",
+    SERVICE_PRINCIPALS: "/entra-id/csa/service-principals",
+    BULK: "/entra-id/csa/bulk",
+    ASSIGN_ATTRIBUTE: (userId: string) => `/entra-id/csa/users/${userId}`,
+    REMOVE_ATTRIBUTE: (userId: string, setId: string, name: string) => `/entra-id/csa/users/${userId}/attributes/${setId}/${name}`,
+    ASSIGN_SP_ATTRIBUTE: (spId: string) => `/entra-id/csa/service-principals/${spId}`,
+    REMOVE_SP_ATTRIBUTE: (spId: string, setId: string, name: string) => `/entra-id/csa/service-principals/${spId}/attributes/${setId}/${name}`,
+  },
+} as const;
+
+/** Purview module API calls. */
+export const PURVIEW_ROUTES = {
+  CATALOG: {
+    CONNECTORS: "/purview/catalog/connectors",
+    CONNECTOR_DETAIL: (name: string) => `/purview/catalog/connectors/${encodeURIComponent(name)}`,
+    STATS: "/purview/catalog/stats",
+    ASSETS: "/purview/catalog/assets",
+    ASSET: (guid: string) => `/purview/catalog/assets/${guid}`,
+    CLASSIFICATION_TYPES: "/purview/catalog/classification-types",
+    CLASSIFICATION_USAGE: "/purview/catalog/classification-usage",
+  },
+  DATA_MAP: {
+    COLLECTIONS: "/purview/data-map/collections",
+    SCAN_RULE_SETS: "/purview/data-map/scan-rule-sets",
+  },
+  COST: {
+    SUMMARY: "/purview/cost/summary",
+    METRICS: "/purview/cost/metrics",
+    SCAN_HISTORY: "/purview/cost/scan-history",
+    VCORE_USAGE: "/purview/cost/vcore-usage",
+  },
+  SCAN_STATUSES: "/purview/scan-statuses",
+  SENSITIVITY_LABELS: "/purview/sensitivity-labels",
+  GOVERNANCE_ACTIVITY: "/purview/governance/activity",
+  DLP: "/purview/dlp",
+  INTEGRATIONS_HEALTH: "/purview/integrations/health",
+} as const;
 
 /**
  * Flat, backward-compatible surface — existing call sites use
@@ -183,9 +323,12 @@ export const API_ROUTES = {
   PLATFORM: PLATFORM_ROUTES,
   TENANTS: TENANT_ROUTES,
   INVITATIONS: INVITATION_ROUTES,
+  DEV: DEV_ROUTES,
   BILLING: BILLING_ROUTES,
   SUPPORT: SUPPORT_ROUTES,
   AUDIT_LOGS: AUDIT_LOG_ROUTES,
   DATAVERSE_LOGS: DATAVERSE_LOGS_ROUTES,
   ...POWER_PLATFORM_ROUTES,
+  ...PURVIEW_ROUTES,
+  ...ENTRA_ID_ROUTES,
 } as const;

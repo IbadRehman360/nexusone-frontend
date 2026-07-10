@@ -2,21 +2,22 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Users } from "lucide-react";
+import { Check, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { Modal } from "@/src/components/ui/overlays/Modal";
 import { useBillingPlans, useInvalidateBilling } from "@/src/hooks/data/useBilling";
-import { redirectToCheckout, cancelModule } from "@/src/services/billing/billingApi";
+import { redirectToCheckout, cancelModule, retryModuleInvoice } from "@/src/services/billing/billingApi";
 import { MODULE_BY_KEY } from "./moduleCatalog";
-import type { PlanListItem } from "@/src/services/billing/billingApi";
+import type { PlanListItem, ModuleBillingInfo } from "@/src/services/billing/billingApi";
 
 interface PlansSectionProps {
   isOwner: boolean;
   paidModules: string[];
   modulesInTrial: string[];
+  moduleBilling: Record<string, ModuleBillingInfo>;
 }
 
-export function PlansSection({ isOwner, paidModules, modulesInTrial }: PlansSectionProps) {
+export function PlansSection({ isOwner, paidModules, modulesInTrial, moduleBilling }: PlansSectionProps) {
   const { plans, isLoading, isError } = useBillingPlans();
 
   return (
@@ -35,7 +36,7 @@ export function PlansSection({ isOwner, paidModules, modulesInTrial }: PlansSect
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {plans.map((plan) => (
-            <PlanCard key={plan.id} isOwner={isOwner} plan={plan} paidModules={paidModules} modulesInTrial={modulesInTrial} />
+            <PlanCard key={plan.id} isOwner={isOwner} plan={plan} paidModules={paidModules} modulesInTrial={modulesInTrial} moduleBilling={moduleBilling} />
           ))}
         </div>
       )}
@@ -45,9 +46,22 @@ export function PlansSection({ isOwner, paidModules, modulesInTrial }: PlansSect
   );
 }
 
-function PlanCard({ isOwner, plan, paidModules, modulesInTrial }: { isOwner: boolean; plan: PlanListItem; paidModules: string[]; modulesInTrial: string[] }) {
+function PlanCard({
+  isOwner,
+  plan,
+  paidModules,
+  modulesInTrial,
+  moduleBilling,
+}: {
+  isOwner: boolean;
+  plan: PlanListItem;
+  paidModules: string[];
+  modulesInTrial: string[];
+  moduleBilling: Record<string, ModuleBillingInfo>;
+}) {
   const invalidate = useInvalidateBilling();
   const [busy, setBusy] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const planModules = plan.modules ?? [];
@@ -59,6 +73,10 @@ function PlanCard({ isOwner, plan, paidModules, modulesInTrial }: { isOwner: boo
   const Icon = meta?.icon ?? Users;
   const priceDollars = Math.round(plan.monthlyUSDcents / 100);
   const features = (plan.features?.length ?? 0) > 0 ? plan.features : meta?.features ?? [];
+
+  const billing = moduleKey ? moduleBilling?.[moduleKey] : undefined;
+  const isPastDue = isOwned && billing?.stripeSubscriptionStatus === "past_due";
+  const renewsAt = isOwned && !isPastDue && billing?.currentPeriodEnd && !billing.cancelAtPeriodEnd ? new Date(billing.currentPeriodEnd) : null;
 
   const buy = async () => {
     if (!isOwner || busy) return;
@@ -86,6 +104,20 @@ function PlanCard({ isOwner, plan, paidModules, modulesInTrial }: { isOwner: boo
     }
   };
 
+  const retryInvoice = async () => {
+    if (!isOwner || retrying || !moduleKey) return;
+    setRetrying(true);
+    try {
+      await retryModuleInvoice(moduleKey);
+      toast.success("Retry initiated", { description: "We'll let you know if the payment succeeds." });
+      await invalidate();
+    } catch (err) {
+      toast.error("Couldn't retry payment", { description: err instanceof Error ? err.message : "Please try again." });
+    } finally {
+      setRetrying(false);
+    }
+  };
+
   return (
     <>
       <div className="rounded-xl border border-(--custom-table-border) bg-(--custom-table-header-bg) p-4 flex flex-col gap-3">
@@ -110,6 +142,18 @@ function PlanCard({ isOwner, plan, paidModules, modulesInTrial }: { isOwner: boo
             </li>
           ))}
         </ul>
+        {renewsAt && <p className="text-[11px] text-muted-foreground">Renews on {renewsAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>}
+        {isPastDue && (
+          <div className="flex items-start gap-1.5 rounded-lg border border-error-400/30 bg-error/5 px-2.5 py-2">
+            <AlertTriangle size={13} className="text-error-400 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-error-400 leading-snug">Your last payment for this module failed.</p>
+          </div>
+        )}
+        {isPastDue && (
+          <Button variant="outline" size="sm" onClick={retryInvoice} loading={retrying} disabled={!isOwner}>
+            Retry now
+          </Button>
+        )}
         {isOwned ? (
           <Button variant="outline" size="sm" onClick={() => setShowCancelConfirm(true)} disabled={!isOwner} className="mt-auto">
             Cancel module

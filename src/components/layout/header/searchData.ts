@@ -12,7 +12,7 @@ const WORLD_LABEL: Record<string, string> = {
   home: "Home",
   "power-platform": "Power Platform",
   "entra-id": "Entra ID",
-  purview: "Data Protection",
+  purview: "Purview",
   monitoring: "Activity",
   configuration: "Settings",
 };

@@ -11,8 +11,8 @@ export type SlideOverWidth = "sm" | "md" | "lg" | "xl";
 const widthClasses: Record<SlideOverWidth, string> = {
   sm: "w-100",            // ~400px
   md: "w-120",            // ~480px
-  lg: "w-full max-w-2xl",
-  xl: "w-full max-w-3xl",
+  lg: "w-screen max-w-2xl shrink-0",
+  xl: "w-screen max-w-3xl shrink-0",
 };
 
 export interface SlideOverProps {

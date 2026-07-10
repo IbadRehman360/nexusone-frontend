@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { ElementType } from "react";
-import { Sun, Moon, LogOut, Users } from "lucide-react";
+import { Sun, Moon, LogOut, Users, Lock } from "lucide-react";
 import { Stack, ShieldCheck, Pulse, Gear, Question, Database, SquaresFour } from "@phosphor-icons/react";
 import { cn } from "@/src/lib/utils/cn";
 import { getActiveWorld, type World } from "@/src/lib/utils/navWorld";
@@ -14,25 +14,51 @@ import { useThemeCustomization } from "@/src/hooks/useThemeCustomization";
 import { useAuth } from "@/src/hooks/useAuth";
 import { usePlatformUsers } from "@/src/hooks/data/usePlatformUsers";
 import { MembersPanel } from "@/src/components/layout/members-panel/MembersPanel";
+import type { SubscriptionModule } from "@/src/components/auth/ModuleGuard";
 
 interface RailEntry {
   world:      World;
   icon:       ElementType;
   label:      string;
   href:       string;
+  /** Owning module — omitted for entries that aren't module-gated (Home, Activity, Settings). */
+  module?:    SubscriptionModule;
 }
 
 const RAIL_ENTRIES: RailEntry[] = [
   { world: 'home',           icon: SquaresFour, label: 'Home',   href: '/dashboard' },
-  { world: 'power-platform', icon: Stack,       label: 'Power',  href: '/dashboard/power-platform' },
-  { world: 'entra-id',       icon: ShieldCheck, label: 'Entra',  href: '/dashboard/entra-id' },
-  { world: 'purview',        icon: Database,    label: 'Data',   href: '/dashboard/purview' },
+  { world: 'power-platform', icon: Stack,       label: 'Power',  href: '/dashboard/power-platform', module: 'pp' },
+  { world: 'entra-id',       icon: ShieldCheck, label: 'Entra',  href: '/dashboard/entra-id',        module: 'entra' },
+  { world: 'purview',        icon: Database,    label: 'Purview', href: '/dashboard/purview',        module: 'purview' },
   { world: 'monitoring',     icon: Pulse,       label: 'Activity', href: '/dashboard/activity' },
   { world: 'configuration',  icon: Gear,        label: 'Settings', href: '/dashboard/settings/members' },
 ];
 
-function RailButton({ entry, isActive }: { entry: RailEntry; isActive: boolean }) {
+function RailButton({ entry, isActive, locked }: { entry: RailEntry; isActive: boolean; locked: boolean }) {
   const Icon = entry.icon;
+
+  // Module not owned — fully inert, no navigation at all: a plain div (no
+  // Link/href), cursor-not-allowed, dimmed, with a lock badge tooltip.
+  if (locked) {
+    return (
+      <div
+        title={`${entry.label} isn't part of your plan`}
+        aria-label={`${entry.label} — not available`}
+        className="relative flex flex-col items-center gap-1.5 w-full px-1 cursor-not-allowed opacity-40 group"
+      >
+        <div className="relative w-11 h-11 rounded-md flex items-center justify-center text-(--nav-fg-dim)">
+          <Icon size={22} weight="regular" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-card border border-border/60 flex items-center justify-center">
+            <Lock size={7} className="text-muted-foreground" />
+          </span>
+        </div>
+        <span className="text-[11px] font-medium leading-none w-full text-center truncate px-1 text-(--nav-fg-label)">
+          {entry.label}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <Link
       href={entry.href}
@@ -71,7 +97,12 @@ export function ProductRail() {
   const activeWorld = getActiveWorld(pathname);
   const { isDark, toggle: toggleTheme } = useTheme();
   const { getSectionStyle } = useThemeCustomization();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const ownedModules = user?.subscription?.modules;
+  // Fully LOCKED (no active plan at all) disables every rail entry except
+  // Settings, regardless of per-module ownership — the tenant can only reach
+  // Billing/Settings to reactivate.
+  const isLocked = user?.subscription?.status === "LOCKED";
   const { users: platformUsers } = usePlatformUsers();
   const onlineCount = platformUsers.filter((u) => u.isOnline).length;
   const [showMembers, setShowMembers] = useState(false);
@@ -94,7 +125,15 @@ export function ProductRail() {
         {RAIL_ENTRIES.map((entry) => (
           <div key={entry.world} className="w-full flex flex-col items-center">
             {entry.world === "monitoring" && <div className="w-8 h-px my-1.5 bg-(--custom-header-input-border)" />}
-            <RailButton entry={entry} isActive={activeWorld === entry.world} />
+            <RailButton
+              entry={entry}
+              isActive={activeWorld === entry.world}
+              locked={
+                entry.world === "configuration"
+                  ? false
+                  : isLocked || (!!entry.module && !(ownedModules?.includes(entry.module) ?? true))
+              }
+            />
           </div>
         ))}
       </div>

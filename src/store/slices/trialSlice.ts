@@ -1,13 +1,30 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { SubscriptionView } from "@/src/services/auth";
 
-export type DevTrialScenario = "trial" | "grace" | "locked" | "active";
+/**
+ * "trial" is the only scenario still previewed client-side — mid-trial IS the
+ * real default state for a fresh tenant, so there's no backend override to
+ * switch to (see DevTestingPanel). "grace"/"locked"/"active" used to be faked
+ * the same way, but that only ever changed what the header chip displayed —
+ * real module pages, the Billing page, and the invite picker stayed on the
+ * tenant's actual (usually TRIAL) state, which is what "not working
+ * correctly" meant in practice. Those three now hit the real backend
+ * impersonation endpoints (see impersonationApi.ts) instead of living here.
+ */
+export type DevTrialScenario = "trial";
 
 const SCENARIO_OVERRIDE: Record<DevTrialScenario, Partial<SubscriptionView>> = {
-  trial: { status: "TRIAL", daysRemaining: 5, hoursRemaining: null, anyModuleInTrial: true, modulesInTrial: ["purview"], anyModuleInGrace: false, modulesInGrace: [] },
-  grace: { status: "GRACE", daysRemaining: 0, hoursRemaining: 18, anyModuleInTrial: false, modulesInTrial: [], anyModuleInGrace: true, modulesInGrace: ["purview"] },
-  locked: { status: "LOCKED", daysRemaining: null, hoursRemaining: null, anyModuleInTrial: false, modulesInTrial: [], anyModuleInGrace: false, modulesInGrace: [] },
-  active: { status: "ACTIVE", daysRemaining: null, hoursRemaining: null, anyModuleInTrial: false, modulesInTrial: [], anyModuleInGrace: false, modulesInGrace: [] },
+  trial: {
+    status: "TRIAL",
+    daysRemaining: 5,
+    hoursRemaining: null,
+    modules: ["entra", "pp", "purview"],
+    paidModules: [],
+    anyModuleInTrial: true,
+    modulesInTrial: ["purview"],
+    anyModuleInGrace: false,
+    modulesInGrace: [],
+  },
 };
 
 interface TrialState {
@@ -20,7 +37,7 @@ const trialSlice = createSlice({
   name: "trial",
   initialState,
   reducers: {
-    setDevTrialScenario(state, action: PayloadAction<DevTrialScenario>) {
+    setDevTrialScenario(state, action: PayloadAction<DevTrialScenario | null>) {
       state.scenario = action.payload;
     },
     clearDevTrialScenario(state) {

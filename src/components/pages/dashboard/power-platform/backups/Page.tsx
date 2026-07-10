@@ -14,7 +14,7 @@ import { useEnvironments } from "@/src/hooks/data/useEnvironments";
 import { useBackups } from "@/src/hooks/data/useBackups";
 import { deleteBackup, deleteBackupSchedule, listBackupSchedules, syncBackupStatus } from "@/src/services/power-platform/backupsApi";
 import { CreateBackupModal } from "./CreateBackupModal";
-import { RestoreBackupModal } from "./RestoreBackupModal";
+import { RestoreBackupSlideOver } from "./RestoreBackupSlideOver";
 import { BackupScheduleSlideOver } from "./BackupScheduleSlideOver";
 import { BackupDetailSlideOver } from "./BackupDetailSlideOver";
 import { BackupInfoSlideOver } from "./BackupInfoSlideOver";
@@ -392,7 +392,7 @@ export default function Page() {
         onCreated={refetch}
       />
 
-      <RestoreBackupModal
+      <RestoreBackupSlideOver
         backup={restoreTarget}
         environmentId={activeEnvId}
         environmentName={activeEnvName}

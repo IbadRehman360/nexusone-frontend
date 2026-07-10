@@ -9,6 +9,7 @@ import { StatsCarousel } from "@/src/components/ui/display/StatsCarousel";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { useActivityLog } from "@/src/hooks/data/useActivityLog";
+import { toCsv, downloadTextFile } from "@/src/lib/utils/csvExport";
 import { CATEGORY_CONFIG, CATEGORY_OPTIONS, STATUS_OPTIONS, DATE_RANGE_OPTIONS } from "./categoryConfig";
 import type { ActivityLog, ActivityCategory, ActivityStatus } from "@/src/services/auditLogs/auditLogApi";
 import { Activity, Download, RefreshCw, ExternalLink } from "lucide-react";
@@ -26,37 +27,20 @@ function subtractDays(days: number): string {
   return d.toISOString();
 }
 
-function escapeCsvCell(value: string): string {
-  const sanitized = /^[=+\-@]/.test(value) ? `'${value}` : value;
-  if (/[",\n]/.test(sanitized)) return `"${sanitized.replace(/"/g, '""')}"`;
-  return sanitized;
-}
-
 function exportToCsv(rows: ActivityLog[]) {
-  const header = ["Timestamp", "User", "Action", "Category", "Status", "Resource", "Environment"];
-  const lines = [header.join(",")];
-  for (const r of rows) {
-    lines.push(
-      [
-        new Date(r.timestamp).toLocaleString(),
-        r.user,
-        r.action,
-        CATEGORY_CONFIG[r.category].label,
-        r.status,
-        r.resource,
-        r.environment,
-      ]
-        .map((v) => escapeCsvCell(String(v)))
-        .join(","),
-    );
-  }
-  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `activity-log-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const csv = toCsv(
+    ["Timestamp", "User", "Action", "Category", "Status", "Resource", "Environment"],
+    rows.map((r) => [
+      new Date(r.timestamp).toLocaleString(),
+      r.user,
+      r.action,
+      CATEGORY_CONFIG[r.category].label,
+      r.status,
+      r.resource,
+      r.environment,
+    ]),
+  );
+  downloadTextFile(csv, `activity-log-${new Date().toISOString().slice(0, 10)}.csv`);
 }
 
 export default function Page() {
@@ -112,7 +96,7 @@ export default function Page() {
             <Dropdown variant="selected" value={category} onChange={setCategory} options={[{ value: "", label: "Category" }, ...CATEGORY_OPTIONS]} placeholder="Category" />
             <Dropdown variant="selected" value={status} onChange={setStatus} options={[{ value: "", label: "Status" }, ...STATUS_OPTIONS]} placeholder="Status" />
             <Dropdown variant="selected" value={rangeDays} onChange={setRangeDays} options={DATE_RANGE_OPTIONS} placeholder="Date range" />
-            <Button variant="outline" size="sm" leftIcon={<Download size={13} />} onClick={() => exportToCsv(filtered)}>
+            <Button variant="outline" size="sm" leftIcon={<Download size={14} />} onClick={() => exportToCsv(filtered)} disabled={filtered.length === 0}>
               Export CSV ({filtered.length})
             </Button>
             <Button variant="outline" size="sm" leftIcon={<RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />} onClick={() => refetch()}>

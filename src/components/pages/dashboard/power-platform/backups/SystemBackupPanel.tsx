@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
-import { Modal } from "@/src/components/ui/overlays/Modal";
-import { formInputClass } from "@/src/components/ui/overlays/CreateModal";
-import { systemRestore } from "@/src/services/power-platform/backupsApi";
+import { DateSelect } from "@/src/components/ui/inputs/DateSelect";
+import { SystemRestoreSlideOver } from "./SystemRestoreSlideOver";
 
 // Microsoft's default backup retention window for non-managed environments.
 const RETENTION_DAYS = 7;
@@ -39,27 +37,16 @@ export function SystemBackupPanel({ environmentId, environmentName, canManage, i
   const [selDate, setSelDate] = useState("");
   const [selTime, setSelTime] = useState("");
   const [confirming, setConfirming] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const combined = selDate && selTime ? new Date(`${selDate}T${selTime}`) : null;
   const isValid = !!combined && !isNaN(combined.getTime()) && combined >= minDate && combined < now;
 
-  const handleConfirm = async () => {
-    if (!combined) return;
-    setSubmitting(true);
-    try {
-      await systemRestore(environmentId, combined.toISOString(), environmentName);
-      toast.success("System restore started", { description: `Restoring ${environmentName} to ${combined.toLocaleString()}. This can take a while.` });
-      setConfirming(false);
-      setSelDate("");
-      setSelTime("");
-      onRestored();
-    } catch (err) {
-      toast.error("Failed to start restore", { description: err instanceof Error ? err.message : "Please try again." });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  function handleRestored() {
+    setConfirming(false);
+    setSelDate("");
+    setSelTime("");
+    onRestored();
+  }
 
   return (
     <div className="p-6 space-y-5">
@@ -73,14 +60,7 @@ export function SystemBackupPanel({ environmentId, environmentName, canManage, i
           <div className="flex items-end gap-3 flex-wrap">
             <div className="space-y-1.5 min-w-44">
               <label className="text-xs font-medium text-foreground/70 uppercase tracking-wide">Select a date</label>
-              <input
-                type="date"
-                value={selDate}
-                onChange={(e) => setSelDate(e.target.value)}
-                min={toDateVal(minDate)}
-                max={toDateVal(now)}
-                className={formInputClass()}
-              />
+              <DateSelect value={selDate} onChange={setSelDate} min={toDateVal(minDate)} max={toDateVal(now)} />
             </div>
             <div className="space-y-1.5 min-w-44">
               <label className="text-xs font-medium text-foreground/70 uppercase tracking-wide">Select a time</label>
@@ -107,30 +87,14 @@ export function SystemBackupPanel({ environmentId, environmentName, canManage, i
         <p className="text-xs text-muted-foreground/60 italic">Select an environment to restore from a system backup.</p>
       )}
 
-      <Modal
+      <SystemRestoreSlideOver
         isOpen={confirming}
+        environmentId={environmentId}
+        environmentName={environmentName}
+        restorePointIso={combined ? combined.toISOString() : null}
         onClose={() => setConfirming(false)}
-        title="Restore from System Backup"
-        subtitle="Restoring overwrites this environment's current data."
-        variant="warning"
-        size="sm"
-        loading={submitting}
-        footer={
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setConfirming(false)} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleConfirm} loading={submitting}>
-              Restore
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-sm text-foreground">
-          Restore <span className="font-semibold">{environmentName}</span> to its state at{" "}
-          <span className="font-semibold">{combined ? combined.toLocaleString() : ""}</span>?
-        </p>
-      </Modal>
+        onRestored={handleRestored}
+      />
     </div>
   );
 }

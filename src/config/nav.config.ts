@@ -26,6 +26,7 @@ import {
   UploadSimple,
   SignIn,
   ShieldChevron,
+  ClockCounterClockwise,
   Fingerprint,
   Password,
   Lifebuoy,
@@ -73,7 +74,7 @@ export const navSections: NavSection[] = [
     items: [
       { label: "Power Platform", href: "/dashboard/power-platform", icon: Stack },
       { label: "Entra ID",       href: "/dashboard/entra-id",       icon: ShieldCheck },
-      { label: "Data Protection", href: "/dashboard/purview",       icon: Database },
+      { label: "Purview",         href: "/dashboard/purview",       icon: Database },
     ],
   },
 
@@ -147,6 +148,7 @@ export const navSections: NavSection[] = [
     world: 'entra-id',
     items: [
       { label: "Conditional Access", href: "/dashboard/entra-id/conditional-access", icon: ShieldChevron },
+      { label: "Backups & History", href: "/dashboard/entra-id/conditional-access/backups", icon: ClockCounterClockwise },
     ],
   },
   {
@@ -193,9 +195,9 @@ export const navSections: NavSection[] = [
     ],
   },
 
-  // ── Data Protection (Purview) ────────────────────────────────────────────
+  // ── Purview ────────────────────────────────────────────────────────────
   {
-    title: "DATA PROTECTION",
+    title: "PURVIEW",
     world: 'purview',
     items: [
       { label: "Overview", href: "/dashboard/purview", icon: SquaresFour },
