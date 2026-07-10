@@ -11,8 +11,6 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Switch } from "@/src/components/ui/inputs/Switch";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
-import { useModuleConnection } from "@/src/hooks/data/useModuleConnection";
-import { useModuleEmptyState } from "@/src/hooks/data/useModuleEmptyState";
 import { createEnvironment, type CreateEnvironmentPayload } from "@/src/services/power-platform/environmentApi";
 import type { PowerPlatformEnvironment } from "@/src/types/powerPlatform";
 import { Globe, Cloud, Plus, Settings2 } from "lucide-react";
@@ -56,13 +54,7 @@ function StatusText({ state }: { state?: string }) {
 }
 
 export default function Page() {
-  // Curated sample data + banner live on the Power Platform Overview page
-  // only — here, just stop firing the real (doomed) query when not
-  // connected and show the generic "not connected" empty state instead.
-  const { connected } = useModuleConnection("pp");
-  const notConnectedState = useModuleEmptyState("pp");
-  const { environments, isLoading: liveLoading, error, refetch } = useEnvironments(undefined, connected);
-  const isLoading = connected && liveLoading;
+  const { environments, isLoading, error, refetch } = useEnvironments();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState<CreateEnvironmentPayload>(emptyCreateForm);
   const [submitting, setSubmitting] = useState(false);
@@ -152,14 +144,12 @@ export default function Page() {
               ),
             },
           ]}
-          emptyState={
-            notConnectedState ?? {
-              icon: Globe,
-              title: "No environments found",
-              description: "Environments will appear here once connected to your Microsoft tenant.",
-              action: { label: "Create Environment", icon: <Plus size={14} />, onClick: openCreateModal },
-            }
-          }
+          emptyState={{
+            icon: Globe,
+            title: "No environments found",
+            description: "Environments will appear here once connected to your Microsoft tenant.",
+            action: { label: "Create Environment", icon: <Plus size={14} />, onClick: openCreateModal },
+          }}
         />
       </DataTableMainHeader>
 

@@ -14,14 +14,13 @@ import {
   CheckCircle2,
   UserCog,
   RefreshCcw as RefreshIcon,
-  PlugZap,
 } from "lucide-react";
 import { isDev } from "@/src/lib/devHarness";
 import { cn } from "@/src/lib/utils/cn";
 import { useAuth } from "@/src/hooks/useAuth";
 import { ThemeCustomizer } from "@/src/components/pages/dashboard/configuration/settings/ThemeCustomizer";
 import { useAppDispatch, useAppSelector } from "@/src/store";
-import { setDevTrialScenario, clearDevTrialScenario, type DevTrialScenario } from "@/src/store/slices/trialSlice";
+import { setDevTrialScenario, clearDevTrialScenario } from "@/src/store/slices/trialSlice";
 import {
   getImpersonationStatus,
   startModuleScenario,
@@ -33,7 +32,7 @@ import {
   type ModuleScenario,
 } from "@/src/services/dev/impersonationApi";
 
-type PanelScenario = "current" | DevTrialScenario | ModuleScenario;
+type PanelScenario = "current" | "trial" | ModuleScenario;
 type PanelTab = "theme" | "trial" | "role" | "onboarding";
 
 const SERVER_SCENARIOS: { id: ModuleScenario; label: string; hint: string; icon: typeof Clock }[] = [
@@ -86,14 +85,14 @@ export function DevTestingPanel() {
     await queryClient.refetchQueries({ queryKey: ["dev", "impersonation-status"] });
   };
 
-  const applyClientScenario = async (scenario: DevTrialScenario) => {
-    setSwitching(scenario);
+  const applyClientTrial = async () => {
+    setSwitching("trial");
     try {
       // A leftover real scenario would keep the backend reporting GRACE/LOCKED
-      // while Redux layers a fake preview on top — clear it first so the UI
-      // and real access agree.
+      // while Redux layers a fake TRIAL preview on top — clear it first so
+      // the UI and real access agree.
       if (activeServerScenario) await stopModuleScenario();
-      dispatch(setDevTrialScenario(scenario));
+      dispatch(setDevTrialScenario("trial"));
       await refreshEverything();
     } catch (err) {
       toast.error("Couldn't switch scenario", { description: err instanceof Error ? err.message : "Please try again." });
@@ -231,10 +230,9 @@ export function DevTestingPanel() {
             {tab === "trial" && (
               <div className="space-y-2">
                 <p className="text-[11px] text-muted-foreground mb-2">
-                  <strong className="text-foreground/80">Trial active</strong> and <strong className="text-foreground/80">Needs
-                  connect</strong> are client-side previews only (they don&apos;t touch real Subscription/ServicePrincipal rows).
-                  The rest hit the real backend — module pages, Billing, and the invite picker are genuinely gated accordingly,
-                  not just the header chip.
+                  <strong className="text-foreground/80">Trial active</strong> is a client-side preview only (mid-trial is
+                  already the real default state). The rest hit the real backend — module pages, Billing, and the invite
+                  picker are genuinely gated accordingly, not just the header chip.
                 </p>
 
                 <button
@@ -250,7 +248,7 @@ export function DevTestingPanel() {
                 </button>
 
                 <button
-                  onClick={() => applyClientScenario("trial")}
+                  onClick={applyClientTrial}
                   disabled={switching !== null}
                   className={cn(
                     "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors disabled:opacity-50",
@@ -259,19 +257,6 @@ export function DevTestingPanel() {
                 >
                   <Clock size={13} className={switching === "trial" ? "animate-pulse" : ""} />
                   Trial active
-                </button>
-
-                <button
-                  onClick={() => applyClientScenario("needs-connect")}
-                  disabled={switching !== null}
-                  title="Client-side preview: Power Platform shows as purchased but not connected — Connect banner + sample data, no real Stripe purchase or Microsoft consent involved"
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors disabled:opacity-50",
-                    activeScenario === "needs-connect" ? "border-info-400 bg-info/10 text-info-400" : "border-border/40 text-foreground hover:border-border/70",
-                  )}
-                >
-                  <PlugZap size={13} className={switching === "needs-connect" ? "animate-pulse" : ""} />
-                  Needs connect (Power Platform)
                 </button>
 
                 {SERVER_SCENARIOS.map((s) => (
@@ -303,7 +288,7 @@ export function DevTestingPanel() {
             {tab === "role" && (
               <div className="space-y-2">
                 <p className="text-[11px] text-muted-foreground mb-2">
-                  Re-issues your session with a preset role&apos;s REAL capabilities baked in — Owner-only buttons, capability
+                  Re-issues your session with a preset role's REAL capabilities baked in — Owner-only buttons, capability
                   gates, and backend 403s all respond as that role, not a UI skin.
                 </p>
 

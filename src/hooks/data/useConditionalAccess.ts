@@ -2,13 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchCaCatalog, fetchCaOverview, fetchCaConditions, fetchCaControls, fetchCaCoverage, fetchCaActivity } from "@/src/services/entra-id/conditionalAccessApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useConditionalAccess(enabled: boolean = true) {
+export function useConditionalAccess() {
   const query = useQuery({
     queryKey: queryKeys.conditionalAccess.catalog(),
     queryFn: fetchCaCatalog,
     staleTime: 120_000,
     retry: false,
-    enabled,
   });
 
   return {

@@ -2,11 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getResourceSummary } from "@/src/services/power-platform/resourceSummaryApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useResourceSummary(enabled: boolean = true) {
+export function useResourceSummary() {
   const query = useQuery({
     queryKey: queryKeys.resourceSummary.all(),
     queryFn: getResourceSummary,
-    enabled,
   });
 
   return {

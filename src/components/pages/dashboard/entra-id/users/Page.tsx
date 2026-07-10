@@ -10,8 +10,6 @@ import { Badge } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { UsersRound, ShieldCheck, UserCheck, UserX, BadgeCheck } from "lucide-react";
 import { useEntraUsers } from "@/src/hooks/data/useEntraUsers";
-import { useModuleConnection } from "@/src/hooks/data/useModuleConnection";
-import { useModuleEmptyState } from "@/src/hooks/data/useModuleEmptyState";
 import type { EntraUser } from "@/src/types/entraUsers";
 import { UserDetailSlideOver } from "./UserDetailSlideOver";
 import { formatDate } from "@/src/lib/utils/dateFormat";
@@ -20,13 +18,7 @@ const STATUS_ALL = { value: "all", label: "All Statuses" };
 const STATUS_OPTIONS = [STATUS_ALL, { value: "enabled", label: "Enabled" }, { value: "disabled", label: "Disabled" }];
 
 export default function Page() {
-  // Curated sample data + status tag live on the Entra ID Overview page
-  // only — here, just stop firing the real (doomed) query when not
-  // connected and show the generic "not connected" empty state instead.
-  const { connected } = useModuleConnection("entra");
-  const notConnectedState = useModuleEmptyState("entra");
-  const { users, isLoading: liveLoading } = useEntraUsers(connected);
-  const isLoading = connected && liveLoading;
+  const { users, isLoading } = useEntraUsers();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -133,13 +125,11 @@ export default function Page() {
           pageSize={20}
           pageSizeOptions={[10, 20, 50, 100]}
           onRowClick={(user) => setSelectedUserId(user.id)}
-          emptyState={
-            notConnectedState ?? {
-              icon: UsersRound,
-              title: "No users found",
-              description: "Users will appear here once they exist in your Microsoft tenant.",
-            }
-          }
+          emptyState={{
+            icon: UsersRound,
+            title: "No users found",
+            description: "Users will appear here once they exist in your Microsoft tenant.",
+          }}
         />
       </DataTableMainHeader>
 

@@ -9,13 +9,12 @@ import {
 } from "@/src/services/entra-id/enterpriseAppsApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useEnterpriseApps(enabled: boolean = true) {
+export function useEnterpriseApps() {
   const query = useQuery({
     queryKey: queryKeys.enterpriseApps.catalog(),
     queryFn: fetchEnterpriseAppCatalog,
     staleTime: 120_000,
     retry: false,
-    enabled,
   });
 
   return {

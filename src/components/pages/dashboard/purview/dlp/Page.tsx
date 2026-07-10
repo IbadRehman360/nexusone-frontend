@@ -9,8 +9,6 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { ShieldAlert, ShieldCheck, TriangleAlert, Users, ToggleLeft } from "lucide-react";
 import { useDlpAlerts } from "@/src/hooks/data/usePurviewDlp";
-import { useModuleConnection } from "@/src/hooks/data/useModuleConnection";
-import { useModuleEmptyState } from "@/src/hooks/data/useModuleEmptyState";
 import { formatDateTime } from "@/src/lib/utils/dateFormat";
 import type { DlpAlert, DlpSeverity } from "@/src/types/purview";
 import { SeverityCell, StatusPill, resolvePolicyName } from "./dlpShared";
@@ -31,13 +29,7 @@ export default function Page() {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  // DLP is Purview's only per-tenant-consent-dependent page — every other
-  // Purview page is NexusOne-owned infra and stays unaffected by this.
-  // Curated sample data + status tag live on the Purview Overview page only.
-  const { connected } = useModuleConnection("purview");
-  const notConnectedState = useModuleEmptyState("purview");
-  const { alerts, isLoading: liveLoading, error } = useDlpAlerts(connected);
-  const isLoading = connected && liveLoading;
+  const { alerts, isLoading, error } = useDlpAlerts();
 
   const stats = useMemo(() => {
     const highSeverity = alerts.filter((a) => a.severity === "high").length;
@@ -235,13 +227,11 @@ export default function Page() {
             pageSize={10}
             pageSizeOptions={[10, 25]}
             onRowClick={setSelectedAlert}
-            emptyState={
-              notConnectedState ?? {
-                icon: ShieldAlert,
-                title: "No DLP alerts",
-                description: "No data loss prevention incidents have been detected in the last 30 days.",
-              }
-            }
+            emptyState={{
+              icon: ShieldAlert,
+              title: "No DLP alerts",
+              description: "No data loss prevention incidents have been detected in the last 30 days.",
+            }}
           />
         </DataTableMainHeader>
       </div>
