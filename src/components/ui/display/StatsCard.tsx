@@ -102,8 +102,11 @@ export default function StatsCard({
 
   const util = utilisation != null ? Math.min(100, Math.max(0, utilisation)) : null;
 
-  const shellClassName = `group relative bg-card rounded-2xl overflow-hidden h-full block transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${href ? "cursor-pointer" : "cursor-default"}`;
-  const shellStyle = { border: `1px solid var(--custom-card-border, rgb(var(${raw}) / 0.35))` };
+  const shellClassName = `group relative rounded-2xl overflow-hidden h-full block transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${href ? "cursor-pointer" : "cursor-default"}`;
+  const shellStyle = {
+    border: `1px solid var(--custom-card-border, rgb(var(${raw}) / 0.35))`,
+    background: `var(--custom-card-bg, rgb(var(${raw}) / 0.06))`,
+  };
 
   const inner = (
     <>

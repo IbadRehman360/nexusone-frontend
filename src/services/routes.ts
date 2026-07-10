@@ -15,6 +15,7 @@ export const AUTH_ROUTES = {
   CALLBACK: "/auth/azure/callback",
   ME: "/auth/me",
   LOGOUT: "/auth/logout",
+  ACKNOWLEDGE_WELCOME: "/auth/welcome-acknowledged",
 } as const;
 
 /** Presence + tenant member list used by the app-shell header/rail — not tied to any product module. */
@@ -48,6 +49,8 @@ export const DEV_ROUTES = {
   STOP_ROLE: "/dev/impersonate",
   START_MODULE_SCENARIO: "/dev/impersonate/module-scenario",
   STOP_MODULE_SCENARIO: "/dev/impersonate/module-scenario",
+  RESET_ONBOARDING: "/dev/impersonate/reset-onboarding",
+  TOGGLE_TENANT_STATUS: "/dev/impersonate/toggle-tenant-status",
 } as const;
 
 /** Billing & Plan settings page — subscription, invoices, payment methods, seats. */

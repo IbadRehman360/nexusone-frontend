@@ -70,7 +70,9 @@ export function DataTableMainHeader({
                 placeholder={searchPlaceholder}
                 size="md"
                 className={cn(
-                  "w-44 sm:w-64 bg-muted/15 border-(--custom-header-input-border) hover:bg-muted/25",
+                  // Match the filter dropdown's background (bg-(--custom-table-bg))
+                  // instead of a separate muted/translucent tone.
+                  "w-44 sm:w-64 bg-(--custom-table-bg) border-(--custom-header-input-border) hover:bg-muted/10",
                   searchHidden && "invisible pointer-events-none",
                 )}
               />

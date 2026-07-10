@@ -143,6 +143,9 @@ function PlanCard({
           ))}
         </ul>
         {renewsAt && <p className="text-[11px] text-muted-foreground">Renews on {renewsAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>}
+        {!isOwned && isInTrial && (
+          <p className="text-[11px] text-info-400">Included in your free trial — buy to keep access once it ends.</p>
+        )}
         {isPastDue && (
           <div className="flex items-start gap-1.5 rounded-lg border border-error-400/30 bg-error/5 px-2.5 py-2">
             <AlertTriangle size={13} className="text-error-400 shrink-0 mt-0.5" />

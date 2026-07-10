@@ -61,15 +61,17 @@ src/app/dashboard/<section>/<page>/page.tsx — route file, re-exports Page
 
 ## 4. Current build status
 
-**Power Platform** — fully built: Overview, Environment Groups, Environments (+ detail), Business Units, Teams, Users, Security Roles, Resources, Delegations, Data Import, Environmental Compliance (+ detail/history), DLP Policies, Backups & Restore.
+**Every dashboard page is built** — Power Platform, Entra ID, and Purview/Data Protection are all real, wired pages (no stubs remain). Power Platform was built first in this rewrite; Entra ID and Purview came in via a later branch merge (`feat/namra-imtiaz`) alongside module-ownership gating and the Dev Testing panel's role/module-scenario impersonation — verify against the actual backend before assuming an Entra ID/Purview endpoint matches what Power Platform established, since they weren't built in this session and haven't been individually re-verified here yet.
 
 **App shell** — fully built: Header (tenant switcher, trial/subscription chip, global Ctrl-K search), presence/Members panel (live via WebSocket + `/platform/users`), Dev Testing panel (Theme + Trial scenario tabs).
 
-**Settings** — built: Members & Invites, Billing & Plan (Overview/Invoices/Payment methods), Support (tickets + reply thread).
+**Module ownership gating** — `ProductRail` now dims/locks rail entries whose module isn't in `user.subscription.modules` (or everything except Settings when `status === "LOCKED"`), rendering a plain non-navigable `div` with a lock badge instead of a `Link`. Any new nav surface (search results, sidebar) that lists pages across modules should respect this same ownership check — see `RailEntry.module` / `SubscriptionModule`.
+
+**Settings** — built: Members & Invites, Billing & Plan (Overview/Invoices/Payment methods, now with a checkout-success page and per-module invoice retry), Support (tickets + reply thread).
 
 **Monitoring** — built: Activity Log, Dataverse Audit Logs (+ full-detail side panel, a genuinely new feature beyond the old app).
 
-**Not started (stubs only)** — Entra ID (all pages), Purview/Data Protection (all pages), Billing checkout-success page.
+**Nothing left unstarted** in the dashboard page tree as of last full survey — if you're picking this up cold, re-run a quick stub-check before trusting this list, since pages can regress or new routes can appear between sessions.
 
 ## 5. Reference apps & backend
 

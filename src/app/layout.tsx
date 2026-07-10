@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { CheckCircle2, XCircle, AlertTriangle, Info, Loader2 } from "lucide-react";
 import "./globals.css";
 import { Providers } from "./Providers";
+
+// Matches this app's own lucide-react icon language (used everywhere else —
+// PlanCard's AlertTriangle, DevTestingPanel's CheckCircle2, etc.) instead of
+// sonner's bundled default icons, which look visually out of place here.
+const TOAST_ICONS = {
+  success: <CheckCircle2 size={20} className="text-success-400" />,
+  error: <XCircle size={20} className="text-error-400" />,
+  warning: <AlertTriangle size={20} className="text-warning-400" />,
+  info: <Info size={20} className="text-info-400" />,
+  loading: <Loader2 size={20} className="text-muted-foreground animate-spin" />,
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,7 +65,40 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>
           {children}
-          <Toaster position="top-right" offset={{ top: 80, right: 0 }} />
+          <Toaster
+            position="top-right"
+            offset={{ top: 80, right: 10 }}
+            icons={TOAST_ICONS}
+            toastOptions={{
+              // Tailwind v4 uses a TRAILING `!` for the important modifier
+              // (e.g. `bg-red-500!`), not a leading one — sonner's own
+              // [data-sonner-toast] CSS otherwise wins over unmarked utilities.
+              unstyled: true,
+              classNames: {
+                // Light per-severity background tint (opacity-scaled via the
+                // `/` notation, not a solid fill) + a plain, larger icon with
+                // no box/border around it — color comes through via icon
+                // color + the card's own light tint only.
+                toast:
+                  "flex items-start gap-3 w-[420px] p-3.5 px-5 rounded-lg shadow-lg border " +
+                  "bg-(--custom-table-bg)! border-(--custom-table-border)! text-foreground!",
+                title: "text-foreground! font-semibold! text-sm!",
+                description: "text-muted-foreground! text-xs! mt-0.5!",
+                icon: "shrink-0 flex items-center justify-center mt-0.5",
+                content: "flex-1 min-w-0",
+                actionButton:
+                  "bg-info/15! border border-info/30! text-info-400! text-xs! font-medium! rounded-lg! px-2.5! py-1.5!",
+                cancelButton:
+                  "bg-(--custom-table-header-bg)! text-muted-foreground! text-xs! font-medium! rounded-lg! px-2.5! py-1.5!",
+                closeButton:
+                  "bg-transparent! border-none! text-muted-foreground!",
+                success: "bg-success/8! border-success-400/30!",
+                error: "bg-error/8! border-error-400/30!",
+                warning: "bg-warning/8! border-warning-400/30!",
+                info: "bg-info/8! border-info-400/30!",
+              },
+            }}
+          />
         </Providers>
       </body>
     </html>

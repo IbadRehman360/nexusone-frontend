@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, RefreshCw, Search, Mail, ShieldCheck, Copy, Check } from "lucide-react";
 import { cn } from "@/src/lib/utils/cn";
-import { usePlatformUsers } from "@/src/hooks/data/usePlatformUsers";
+import { useTenantMembers } from "@/src/hooks/data/useMembers";
 import { useOnlineUsersPanel } from "@/src/hooks/useOnlineUsersPanel";
 import { useAuth } from "@/src/hooks/useAuth";
+import { useAppSelector } from "@/src/store";
 import type { PlatformUser } from "@/src/store/slices/platformSlice";
 
 function getInitials(fullName: string): string {
@@ -126,7 +127,31 @@ interface MembersPanelProps {
 /** Reusable presence panel — tenant members list with live online/away status. Mount anywhere; opens as a fixed floating panel. */
 export function MembersPanel({ isOpen, onClose }: MembersPanelProps) {
   const { user: currentUser } = useAuth();
-  const { users, isLoading, refetch } = usePlatformUsers();
+  const { members, isLoading, refetch } = useTenantMembers();
+  const presenceMap = useAppSelector((s) => s.platform.presenceMap);
+
+  // This panel shows the caller's own tenant team, with live presence layered
+  // on top — same tenant-scoped source the Members & Invites settings page
+  // uses (`useTenantMembers`), not the platform-wide `/platform/users` list.
+  const users: PlatformUser[] = useMemo(
+    () =>
+      members
+        .filter((m) => m.isActive !== false)
+        .map((m) => {
+          const presence = presenceMap[m.id];
+          const isOnline = m.id === currentUser?.id ? true : (presence?.isOnline ?? false);
+          return {
+            id: m.id,
+            email: m.email,
+            fullName: m.fullName,
+            tenantRole: m.role,
+            isOnline,
+            lastSeen: presence?.lastSeen ?? m.lastActiveAt,
+          };
+        }),
+    [members, presenceMap, currentUser?.id],
+  );
+
   const { search, setSearch, online, offline } = useOnlineUsersPanel(users);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

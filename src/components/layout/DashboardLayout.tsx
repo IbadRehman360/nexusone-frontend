@@ -11,6 +11,7 @@ import { getActiveWorld } from "@/src/lib/utils/navWorld";
 import { useThemeCustomization } from "@/src/hooks/useThemeCustomization";
 import { useAuth } from "@/src/hooks/useAuth";
 import { usePresence } from "@/src/hooks/usePresence";
+import { WelcomeOnboardingModal } from "@/src/components/dashboard/onboarding/WelcomeOnboardingModal";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -78,6 +79,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         </button>
       )}
+
+      {isAuthenticated && <WelcomeOnboardingModal />}
     </div>
   );
 }

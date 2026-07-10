@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Clock, AlertTriangle, Lock } from "lucide-react";
 import { useAuth } from "@/src/hooks/useAuth";
 import type { SubscriptionView } from "@/src/services/auth";
+import { formatModulesInPhase } from "@/src/lib/constants/modules";
 
 interface ChipDef {
   Icon: typeof Clock;
@@ -25,25 +26,11 @@ function buildChip(status: SubscriptionView["status"] | undefined): ChipDef | nu
   }
 }
 
-const MODULE_LABELS: Record<string, string> = {
-  entra: "Entra ID",
-  pp: "Power Platform",
-  purview: "Purview",
-};
-
 function formatDays(status: SubscriptionView["status"], daysRemaining: number | null, hoursRemaining: number | null): string {
   if (status === "LOCKED") return "Upgrade to restore access";
   if (daysRemaining !== null && daysRemaining <= 1 && hoursRemaining) return `${hoursRemaining}h left`;
   if (daysRemaining !== null && daysRemaining > 0) return `${daysRemaining} days left`;
   return "";
-}
-
-function formatModulesInPhase(modules: string[], suffix: string): string {
-  const labels = modules.map((m) => MODULE_LABELS[m] ?? m);
-  if (labels.length === 0) return "";
-  if (labels.length === 1) return `${labels[0]} ${suffix}`;
-  if (labels.length === 2) return `${labels[0]} & ${labels[1]} ${suffix}`;
-  return `${labels.slice(0, -1).join(", ")} & ${labels[labels.length - 1]} ${suffix}`;
 }
 
 export function HeaderStatusChip() {

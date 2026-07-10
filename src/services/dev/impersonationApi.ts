@@ -44,3 +44,15 @@ export const startModuleScenario = async (scenario: ModuleScenario): Promise<voi
 export const stopModuleScenario = async (): Promise<void> => {
   await apiClient.delete(DEV_ROUTES.STOP_MODULE_SCENARIO);
 };
+
+/** Destructive — wipes the caller's whole Organization so the next sign-in re-triggers onboarding from scratch. */
+export const resetOwnOnboarding = async (): Promise<{ organizationId: string; tenantIds: string[] }> => {
+  const response = await apiClient.post(DEV_ROUTES.RESET_ONBOARDING);
+  return unwrap(response.data);
+};
+
+/** Flips the caller's current tenant between `active` and `pending_approval` for testing the holding screen. */
+export const toggleTenantStatus = async (): Promise<{ status: string }> => {
+  const response = await apiClient.post(DEV_ROUTES.TOGGLE_TENANT_STATUS);
+  return unwrap(response.data);
+};

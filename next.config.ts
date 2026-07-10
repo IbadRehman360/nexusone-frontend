@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-
+devIndicators: false,
   // Proxy all /api/* requests to the backend. Using the proxy (instead of
   // calling the backend directly) keeps all requests same-origin so httpOnly
   // cookies work without cross-origin complications once real auth is wired.

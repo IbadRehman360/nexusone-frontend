@@ -21,8 +21,8 @@ export function PageHeader({ title, description, breadcrumbs, envBadge, action }
   return (
     <div>
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-foreground">{title}</h1>
             {envBadge && (
@@ -35,7 +35,7 @@ export function PageHeader({ title, description, breadcrumbs, envBadge, action }
             <p className="mt-1.5 text-sm text-[rgb(var(--foreground)/0.65)]">{description}</p>
           )}
         </div>
-        {action && <div className="shrink-0 mt-1">{action}</div>}
+        {action && <div className="shrink-0">{action}</div>}
       </div>
     </div>
   );

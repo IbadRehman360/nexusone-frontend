@@ -14,7 +14,11 @@ export interface SubscriptionView {
   anyModuleInTrial: boolean;
   modulesInGrace: string[];
   anyModuleInGrace: boolean;
+  /** Server-tracked — null until the Welcome modal has been dismissed for this tenant. */
+  welcomeAcknowledgedAt?: string | null;
 }
+
+export type TenantStatus = "pending_approval" | "active" | "pending_deletion" | "deactivated" | "deleting";
 
 export interface AuthUser {
   id: string;
@@ -23,6 +27,8 @@ export interface AuthUser {
   currentTenantId: string | null;
   tenantRole?: string | null;
   subscription?: SubscriptionView | null;
+  /** Live lifecycle status of the current tenant — null when there's no current tenant. */
+  tenantStatus?: TenantStatus | null;
 }
 
 /**
@@ -50,4 +56,9 @@ export const initiateAzureLogin = (): void => {
 /** Revoke the session server-side. The refresh_token cookie is sent automatically. */
 export const logout = async (): Promise<void> => {
   await apiClient.post(API_ROUTES.AUTH.LOGOUT);
+};
+
+/** Marks the Welcome modal as seen for the current tenant (server-tracked, survives reload/relogin). */
+export const acknowledgeWelcome = async (): Promise<void> => {
+  await apiClient.post(API_ROUTES.AUTH.ACKNOWLEDGE_WELCOME);
 };

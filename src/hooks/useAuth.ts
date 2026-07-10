@@ -24,6 +24,9 @@ export function useAuth() {
     queryFn: getMe,
     retry: false,
     staleTime: 60_000,
+    // While pending approval, poll so a SUPER_ADMIN's approval takes effect
+    // on the PendingApprovalScreen without a manual reload.
+    refetchInterval: (q) => (q.state.data?.tenantStatus === "pending_approval" ? 30_000 : false),
   });
 
   const logout = async () => {

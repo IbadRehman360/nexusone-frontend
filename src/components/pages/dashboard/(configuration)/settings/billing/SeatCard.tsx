@@ -70,9 +70,11 @@ export function SeatCard({ isOwner }: SeatCardProps) {
   };
 
   return (
-    <div className="rounded-xl border border-(--custom-table-border) bg-(--custom-table-header-bg) p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Users size={15} className="text-muted-foreground/70" />
+    <div className="rounded-xl border border-(--custom-table-border) max-w-3xl bg-(--custom-table-header-bg) p-4">
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-9 h-9 rounded-lg bg-info/10 border border-info/20 flex items-center justify-center shrink-0">
+          <Users size={16} className="text-info-400" />
+        </div>
         <h3 className="text-sm font-semibold text-foreground">Invite seats</h3>
       </div>
 
@@ -89,15 +91,29 @@ export function SeatCard({ isOwner }: SeatCardProps) {
 
       {isOwner && seats.canManage ? (
         <div className="space-y-3">
-          <div className="flex items-center gap-1 rounded-full border border-border/40 shrink-0 pl-1 w-fit">
-            <Button variant="ghost" size="icon-sm" onClick={() => adjustTarget(-1)} disabled={busy || target <= floor} aria-label="Remove one extra seat">
-              <Minus size={13} />
+          <div className="flex items-center gap-0.5 rounded-full border border-(--custom-table-border) bg-(--custom-table-bg) shrink-0 p-0.5 w-fit">
+            <Button
+              variant="outline"
+              size="icon-sm"
+              className="rounded-full bg-(--custom-table-header-bg) border-(--custom-table-border)"
+              onClick={() => adjustTarget(-1)}
+              disabled={busy || target <= floor}
+              aria-label="Remove one extra seat"
+            >
+              <Minus size={12} />
             </Button>
-            <span className="text-xs font-medium text-foreground whitespace-nowrap px-1 tabular-nums">
-              {target - seats.base} extra seat{target - seats.base === 1 ? "" : "s"}
+            <span className="text-xs font-medium text-foreground whitespace-nowrap px-2 tabular-nums">
+              {target - seats.base} extra
             </span>
-            <Button variant="ghost" size="icon-sm" onClick={() => adjustTarget(1)} disabled={busy || isAtCeiling} aria-label="Add one extra seat">
-              <Plus size={13} />
+            <Button
+              variant="outline"
+              size="icon-sm"
+              className="rounded-full bg-(--custom-table-header-bg) border-(--custom-table-border)"
+              onClick={() => adjustTarget(1)}
+              disabled={busy || isAtCeiling}
+              aria-label="Add one extra seat"
+            >
+              <Plus size={12} />
             </Button>
           </div>
 
