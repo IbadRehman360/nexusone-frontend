@@ -3,10 +3,11 @@ import { getEnvironments } from "@/src/services/power-platform/environmentApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 import type { PowerPlatformEnvironment } from "@/src/types/powerPlatform";
 
-export function useEnvironments(state?: string) {
+export function useEnvironments(state?: string, enabled: boolean = true) {
   const query = useQuery({
     queryKey: queryKeys.environments.all(state),
     queryFn: () => getEnvironments(state),
+    enabled,
   });
 
   return {

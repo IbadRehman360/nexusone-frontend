@@ -8,12 +8,13 @@ import {
 } from "@/src/services/entra-id/usersApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useEntraUsers() {
+export function useEntraUsers(enabled: boolean = true) {
   const query = useQuery({
     queryKey: queryKeys.entraUsers.list(),
     queryFn: fetchUsers,
     staleTime: 120_000,
     retry: false,
+    enabled,
   });
 
   return {

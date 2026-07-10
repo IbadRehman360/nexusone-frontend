@@ -34,7 +34,17 @@ const RAIL_ENTRIES: RailEntry[] = [
   { world: 'configuration',  icon: Gear,        label: 'Settings', href: '/dashboard/settings/members' },
 ];
 
-function RailButton({ entry, isActive, locked }: { entry: RailEntry; isActive: boolean; locked: boolean }) {
+function RailButton({
+  entry,
+  isActive,
+  locked,
+  needsConnect,
+}: {
+  entry: RailEntry;
+  isActive: boolean;
+  locked: boolean;
+  needsConnect: boolean;
+}) {
   const Icon = entry.icon;
 
   // Module not owned — fully inert, no navigation at all: a plain div (no
@@ -71,13 +81,19 @@ function RailButton({ entry, isActive, locked }: { entry: RailEntry; isActive: b
       )}
       <div
         className={cn(
-          "w-11 h-11 rounded-md flex items-center justify-center transition-colors duration-150 shrink-0",
+          "relative w-11 h-11 rounded-md flex items-center justify-center transition-colors duration-150 shrink-0",
           isActive
             ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-fg)]"
             : "text-(--nav-fg-dim) hover:bg-[var(--nav-active-hover)] hover:text-(--nav-fg-hover)",
         )}
       >
         <Icon size={22} weight={isActive ? "fill" : "regular"} />
+        {needsConnect && (
+          <span
+            title={`${entry.label} isn't connected yet — showing sample data`}
+            className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-warning-400 border border-(--nav-fg-dim,rgb(var(--shell-surface)))"
+          />
+        )}
       </div>
       <span
         className={cn(
@@ -99,6 +115,8 @@ export function ProductRail() {
   const { getSectionStyle } = useThemeCustomization();
   const { user, logout } = useAuth();
   const ownedModules = user?.subscription?.modules;
+  const paidModules = user?.subscription?.paidModules;
+  const connectedModules = user?.subscription?.connectedModules;
   // Fully LOCKED (no active plan at all) disables every rail entry except
   // Settings, regardless of per-module ownership — the tenant can only reach
   // Billing/Settings to reactivate.
@@ -132,6 +150,14 @@ export function ProductRail() {
                 entry.world === "configuration"
                   ? false
                   : isLocked || (!!entry.module && !(ownedModules?.includes(entry.module) ?? true))
+              }
+              // Purchased but not yet connected — dot only makes sense once
+              // the module is actually reachable (not locked, not merely a
+              // trial), matching ModuleConnectBanner's own needsConnect rule.
+              needsConnect={
+                !!entry.module &&
+                (paidModules?.includes(entry.module) ?? false) &&
+                !(connectedModules?.includes(entry.module) ?? false)
               }
             />
           </div>

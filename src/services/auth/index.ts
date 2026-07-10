@@ -11,6 +11,10 @@ export interface SubscriptionView {
   modules: string[];
   /** Modules actually paid for. */
   paidModules: string[];
+  /** Modules with a completed Microsoft admin consent — real data flows.
+   * A module can be in `paidModules` but not here: purchased, Connect
+   * banner should show, sample data serves until the customer connects it. */
+  connectedModules: string[];
   modulesInTrial: string[];
   anyModuleInTrial: boolean;
   modulesInGrace: string[];

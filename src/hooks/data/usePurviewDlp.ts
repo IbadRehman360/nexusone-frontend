@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchDlpAlerts } from "@/src/services/purview/dlpApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useDlpAlerts() {
+export function useDlpAlerts(enabled: boolean = true) {
   const query = useQuery({
     queryKey: queryKeys.purviewDlp.alerts(),
     queryFn: fetchDlpAlerts,
+    enabled,
   });
 
   const alerts = query.data ?? [];

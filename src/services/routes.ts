@@ -40,6 +40,15 @@ export const TENANT_ROUTES = {
     `/tenants/${id}/members/${userId}/disable-mfa`,
 } as const;
 
+/** Per-module Microsoft admin-consent flow — Connect button on a purchased-
+ * but-not-yet-connected module. Distinct from TENANT_ROUTES' consent calls
+ * (tenant bootstrap, not module-scoped). */
+export const MODULE_CONSENT_ROUTES = {
+  INITIATE: "/module-consent/initiate",
+  COMPLETE: "/module-consent/complete",
+  STATUS: "/module-consent/status",
+} as const;
+
 /** Invitations — pending invites into a tenant. */
 export const INVITATION_ROUTES = {
   LIST: "/invitations",
@@ -331,6 +340,7 @@ export const API_ROUTES = {
   AUTH: AUTH_ROUTES,
   PLATFORM: PLATFORM_ROUTES,
   TENANTS: TENANT_ROUTES,
+  MODULE_CONSENT: MODULE_CONSENT_ROUTES,
   INVITATIONS: INVITATION_ROUTES,
   DEV: DEV_ROUTES,
   BILLING: BILLING_ROUTES,

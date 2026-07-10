@@ -11,7 +11,7 @@ import type { SubscriptionView } from "@/src/services/auth";
  * correctly" meant in practice. Those three now hit the real backend
  * impersonation endpoints (see impersonationApi.ts) instead of living here.
  */
-export type DevTrialScenario = "trial";
+export type DevTrialScenario = "trial" | "needs-connect";
 
 const SCENARIO_OVERRIDE: Record<DevTrialScenario, Partial<SubscriptionView>> = {
   trial: {
@@ -22,6 +22,21 @@ const SCENARIO_OVERRIDE: Record<DevTrialScenario, Partial<SubscriptionView>> = {
     paidModules: [],
     anyModuleInTrial: true,
     modulesInTrial: ["purview"],
+    anyModuleInGrace: false,
+    modulesInGrace: [],
+  },
+  // Previews the "purchased but not yet connected" state (Connect banner +
+  // sample data) without a real Stripe purchase or real Microsoft consent —
+  // pins Power Platform as paid, real ServicePrincipal state stays empty.
+  "needs-connect": {
+    status: "ACTIVE",
+    daysRemaining: null,
+    hoursRemaining: null,
+    modules: ["entra", "pp", "purview"],
+    paidModules: ["pp"],
+    connectedModules: [],
+    anyModuleInTrial: false,
+    modulesInTrial: [],
     anyModuleInGrace: false,
     modulesInGrace: [],
   },

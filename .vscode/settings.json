@@ -1,0 +1,15 @@
+{
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.git/objects/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/yarn.lock": true
+  },
+  "files.exclude": {
+    "**/tsconfig.tsbuildinfo": true
+  }
+}

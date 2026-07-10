@@ -19,6 +19,9 @@ import { useCatalogStats, useScanStatuses } from "@/src/hooks/data/usePurviewDat
 import { useDlpAlerts } from "@/src/hooks/data/usePurviewDlp";
 import { useIntegrationsHealth } from "@/src/hooks/data/usePurviewIntegrations";
 import { useCostSummary, useVCoreUsage } from "@/src/hooks/data/usePurviewCost";
+import { useModuleConnection } from "@/src/hooks/data/useModuleConnection";
+import { ModuleStatusTag } from "@/src/components/module-connect/ModuleStatusTag";
+import { SAMPLE_DLP_ALERTS } from "@/src/components/module-connect/samplePurviewData";
 import { formatCurrency, trendLabel, trendIcon, trendColor } from "./cost-billing/costFormat";
 import { formatDateTime as formatShortDateTime } from "@/src/lib/utils/dateFormat";
 import { StatusCell } from "./integrations/integrationsShared";
@@ -56,14 +59,19 @@ function SectionCard({ title, subtitle, viewHref, viewLabel = "View all", childr
 }
 
 export default function Page() {
+  // Only DLP is per-tenant-consent-dependent (see purview.service.ts) —
+  // catalog/scan/cost/integrations below are NexusOne-owned infra and are
+  // NEVER sample-gated, regardless of this module's connection status.
+  const { connected: dlpConnected } = useModuleConnection("purview");
   const { catalogStats, isLoading: catalogLoading } = useCatalogStats();
   const { history, isLoading: historyLoading } = useScanStatuses();
-  const { alerts: dlpAlerts, isLoading: dlpLoading } = useDlpAlerts();
+  const { alerts: liveDlpAlerts, isLoading: dlpLoading } = useDlpAlerts(dlpConnected);
+  const dlpAlerts = dlpConnected ? liveDlpAlerts : SAMPLE_DLP_ALERTS;
   const { health } = useIntegrationsHealth();
   const { summary } = useCostSummary();
   const { vCoreUsage } = useVCoreUsage();
 
-  const isLoading = catalogLoading || historyLoading || dlpLoading;
+  const isLoading = catalogLoading || historyLoading || (dlpConnected && dlpLoading);
 
   const stats = useMemo(() => {
     const classifiedPct = catalogStats && catalogStats.totalAssets > 0
@@ -114,6 +122,7 @@ export default function Page() {
         title="Purview"
         description="A single view of Microsoft Purview across data mapping, classification, DLP, governance, and cost."
         breadcrumbs={[{ label: "Purview", icon: ShieldCheck }]}
+        titleBadge={<ModuleStatusTag module="purview" />}
       />
 
       <StatsCarousel
@@ -153,7 +162,7 @@ export default function Page() {
           {
             title: "DLP Incidents (Active)",
             value: stats.activeDlp,
-            subtitle: "last 30 days",
+            subtitle: dlpConnected ? "last 30 days" : "last 30 days — sample data",
             icon: ShieldAlert,
             color: "red",
             isLoading,
@@ -189,7 +198,7 @@ export default function Page() {
 
         <SectionCard
           title="DLP incidents — 30 day trend"
-          subtitle="Purview DLP — policy matches by severity"
+          subtitle={dlpConnected ? "Purview DLP — policy matches by severity" : "Sample data — connect Purview to see real DLP alerts"}
           viewHref="/dashboard/purview/dlp"
           viewLabel="View alerts"
         >
@@ -296,7 +305,11 @@ export default function Page() {
           )}
         </SectionCard>
 
-        <SectionCard title="DLP Analytics" viewHref="/dashboard/purview/dlp">
+        <SectionCard
+          title="DLP Analytics"
+          subtitle={dlpConnected ? undefined : "Sample data — connect Purview to see real DLP alerts"}
+          viewHref="/dashboard/purview/dlp"
+        >
           <DlpOverviewPanel alerts={dlpAlerts} />
         </SectionCard>
       </div>

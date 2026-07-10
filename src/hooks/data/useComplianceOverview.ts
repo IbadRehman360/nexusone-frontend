@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchComplianceOverview } from "@/src/services/power-platform/complianceApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useComplianceOverview() {
+export function useComplianceOverview(enabled: boolean = true) {
   const query = useQuery({
     queryKey: queryKeys.compliance.overview(),
     queryFn: fetchComplianceOverview,
+    enabled,
   });
 
   return {

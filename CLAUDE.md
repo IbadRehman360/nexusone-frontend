@@ -78,4 +78,6 @@ src/app/dashboard/<section>/<page>/page.tsx — route file, re-exports Page
 
 **Nothing left unstarted** in the dashboard page tree as of last full survey — if you're picking this up cold, re-run a quick stub-check before trusting this list, since pages can regress or new routes can appear between sessions.
 
+**Module-connect (per-module Entra consent) — Power Platform pilot only, in progress.** `useModuleConnection(module)` (`hooks/data/useModuleConnection.ts`) derives `paid`/`connected`/`needsConnect` from `user.subscription.paidModules`/`connectedModules`. `ModuleConnectBanner` (`components/module-connect/`) renders on a purchased-but-unconnected module's page and drives the Connect flow via `services/module-consent/moduleConsentApi.ts`. Landing page at `/dashboard/settings/module-consent-callback`. Currently wired on `/dashboard/power-platform` and `/dashboard/power-platform/environments` only (curated sample data in `components/module-connect/samplePowerPlatformData.ts`) — Entra ID and Purview need the same treatment before this is complete; see root `G:\nexusone\CLAUDE.md` and the plan at `sharded-waddling-sundae.md` for the full picture. Deeper Power Platform pages intentionally show no banner/sample data yet (agreed scope: top-level pages only, first pass).
+
 ## 5. Reference apps & backend

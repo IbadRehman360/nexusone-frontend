@@ -2,12 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchGroups, fetchGroupDetail } from "@/src/services/entra-id/groupsApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
 
-export function useGroups() {
+export function useGroups(enabled: boolean = true) {
   const query = useQuery({
     queryKey: queryKeys.groups.list(),
     queryFn: fetchGroups,
     staleTime: 120_000,
     retry: false,
+    enabled,
   });
 
   return {
