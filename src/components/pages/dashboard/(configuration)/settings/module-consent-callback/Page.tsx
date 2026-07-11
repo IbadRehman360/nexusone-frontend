@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { completeModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
+import { Button } from "@/src/components/ui/inputs/Button";
 
 type Phase = "connecting" | "success" | "failure";
 
@@ -86,12 +88,9 @@ export default function Page() {
             </div>
             <h1 className="text-lg font-bold text-foreground">Couldn&apos;t connect</h1>
             <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{message}</p>
-            <a
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-lg bg-info text-info-foreground text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              Back to dashboard
-            </a>
+            <Link href="/dashboard" className="inline-block mt-5">
+              <Button>Back to dashboard</Button>
+            </Link>
           </>
         )}
       </div>

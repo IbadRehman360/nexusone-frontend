@@ -8,8 +8,12 @@ import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Badge } from "@/src/components/ui/display/Badge";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
+import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { EnvironmentSelect } from "@/src/components/power-platform/EnvironmentSelect";
 import { useBusinessUnits } from "@/src/hooks/data/useBusinessUnits";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_BUSINESS_UNITS } from "@/src/lib/sampleData/powerPlatform";
 import { createBusinessUnit } from "@/src/services/power-platform/businessUnitApi";
 import type { BusinessUnit } from "@/src/types/powerPlatform";
 import { Users, ChevronRight, ChevronDown, Cloud, Plus } from "lucide-react";
@@ -53,9 +57,11 @@ function buildNameMap(units: BusinessUnit[], map = new Map<string, string>()): M
 }
 
 export default function Page() {
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const [environmentUrl, setEnvironmentUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const { businessUnits, isLoading, error, refetch } = useBusinessUnits(environmentUrl);
+  const { businessUnits: realBusinessUnits, isLoading, error, refetch } = useBusinessUnits(locked ? "" : environmentUrl);
+  const businessUnits = locked ? SAMPLE_PP_BUSINESS_UNITS : realBusinessUnits;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newName, setNewName] = useState("");
@@ -128,14 +134,29 @@ export default function Page() {
             Create Business Unit
           </Button>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader
         title={`Business Units (${totalCount})`}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search business units…"
-        headerRight={<EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />}
+        headerRight={
+          locked ? (
+            <Dropdown
+              value="sample-env-prod"
+              onChange={() => {}}
+              disabled
+              options={[{ value: "sample-env-prod", label: "Contoso Production" }]}
+            />
+          ) : (
+            <EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />
+          )
+        }
         filters={
           <>
             <Button variant="outline" size="sm" onClick={() => setExpanded(new Set(idsWithChildren(businessUnits)))}>
@@ -153,8 +174,10 @@ export default function Page() {
         <DataTable<Row>
           data={rows}
           keyExtractor={(unit) => unit.businessUnitId}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           searchValue={searchQuery}
           columns={[
             {

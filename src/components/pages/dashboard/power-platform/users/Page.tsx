@@ -5,10 +5,14 @@ import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
 import { DataTableMainHeader } from "@/src/components/ui/display/DataTable/DataTableMainHeader";
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Button } from "@/src/components/ui/inputs/Button";
+import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { EnvironmentSelect } from "@/src/components/power-platform/EnvironmentSelect";
 import { useUsers } from "@/src/hooks/data/useUsers";
 import { useBusinessUnits } from "@/src/hooks/data/useBusinessUnits";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_USERS } from "@/src/lib/sampleData/powerPlatform";
 import { ManageUserModal } from "./ManageUserModal";
 import { DelegateUserModal } from "./DelegateUserModal";
 import type { PPUser } from "@/src/types/powerPlatform";
@@ -16,10 +20,12 @@ import { UserCircleGear } from "@phosphor-icons/react";
 import { Cloud, Clock, Settings2 } from "lucide-react";
 
 export default function Page() {
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const [environmentUrl, setEnvironmentUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const { users, isLoading, error, refetch } = useUsers(environmentUrl);
-  const { businessUnits } = useBusinessUnits(environmentUrl);
+  const { users: realUsers, isLoading, error, refetch } = useUsers(locked ? "" : environmentUrl);
+  const users = locked ? SAMPLE_PP_USERS : realUsers;
+  const { businessUnits } = useBusinessUnits(locked ? "" : environmentUrl);
   const { environments } = useEnvironments();
   const [manageUser, setManageUser] = useState<PPUser | null>(null);
   const [delegateUser, setDelegateUser] = useState<PPUser | null>(null);
@@ -45,20 +51,37 @@ export default function Page() {
           { label: "Power Platform", href: "/dashboard/power-platform", icon: Cloud },
           { label: "Users", icon: UserCircleGear },
         ]}
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader
         title={`Users (${users.length})`}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search users…"
-        headerRight={<EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />}
+        headerRight={
+          locked ? (
+            <Dropdown
+              value="sample-env-prod"
+              onChange={() => {}}
+              disabled
+              options={[{ value: "sample-env-prod", label: "Contoso Production" }]}
+            />
+          ) : (
+            <EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />
+          )
+        }
       >
         <DataTable<PPUser>
           data={users}
           keyExtractor={(user) => user.userId}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           searchValue={searchQuery}
           sortEnabled
           defaultSortField="fullName"

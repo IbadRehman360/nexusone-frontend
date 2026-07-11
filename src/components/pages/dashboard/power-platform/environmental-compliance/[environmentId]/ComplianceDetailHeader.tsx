@@ -11,9 +11,12 @@ interface ComplianceDetailHeaderProps {
   isHistory?: boolean;
   onRunCheck: () => void;
   running: boolean;
+  /** Gates only the Run Check button (a write action) — Back stays navigable regardless. */
+  locked?: boolean;
+  lockedTooltip?: string;
 }
 
-export function ComplianceDetailHeader({ name, isHistory, onRunCheck, running }: ComplianceDetailHeaderProps) {
+export function ComplianceDetailHeader({ name, isHistory, onRunCheck, running, locked, lockedTooltip }: ComplianceDetailHeaderProps) {
   const router = useRouter();
 
   return (
@@ -30,9 +33,19 @@ export function ComplianceDetailHeader({ name, isHistory, onRunCheck, running }:
           <Button variant="outline" size="sm" leftIcon={<ArrowLeft size={14} />} onClick={() => router.push("/dashboard/power-platform/environmental-compliance")}>
             Back
           </Button>
-          <Button size="sm" leftIcon={<Zap size={14} />} onClick={onRunCheck} loading={running}>
-            Run Check
-          </Button>
+          <div title={locked ? lockedTooltip : undefined}>
+            {locked ? (
+              <div aria-disabled="true" className="opacity-50 pointer-events-none cursor-not-allowed inline-block">
+                <Button size="sm" leftIcon={<Zap size={14} />}>
+                  Run Check
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" leftIcon={<Zap size={14} />} onClick={onRunCheck} loading={running}>
+                Run Check
+              </Button>
+            )}
+          </div>
         </div>
       }
     />

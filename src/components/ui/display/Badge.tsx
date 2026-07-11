@@ -24,7 +24,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   success: `${CHIP} text-success-700 dark:text-success-400`,
   warning: `${CHIP} text-warning-800 dark:text-warning-400`,
   error: `${CHIP} text-error-700 dark:text-error-400`,
-  info: `${CHIP} text-info-700 dark:text-info-400`,
+  info: `${CHIP} text-info-300 dark:text-info-400`,
   neutral: `${CHIP} text-foreground/70`,
   purple: `${CHIP} text-foreground/70`,
 };
@@ -37,8 +37,8 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={`
-        inline-flex items-center px-2.5 py-0.5
-        rounded-full text-xs font-medium border
+        inline-flex items-center px-2.5 py-1
+        rounded-lg text-xs font-medium border
         ${variantStyles[variant]}
         ${className}
       `}

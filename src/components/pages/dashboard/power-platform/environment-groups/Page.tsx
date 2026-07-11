@@ -9,6 +9,9 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Modal } from "@/src/components/ui/overlays/Modal";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { useEnvironmentGroups } from "@/src/hooks/data/useEnvironmentGroups";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_ENVIRONMENT_GROUPS } from "@/src/lib/sampleData/powerPlatform";
 import { createEnvironmentGroup, updateEnvironmentGroup, deleteEnvironmentGroup } from "@/src/services/power-platform/environmentGroupApi";
 import type { EnvironmentGroupWithEnvironments } from "@/src/types/powerPlatform";
 import { Layers2, Cloud, Plus, Settings2, Trash2 } from "lucide-react";
@@ -21,7 +24,9 @@ interface GroupFormState {
 const emptyForm: GroupFormState = { displayName: "", description: "" };
 
 export default function Page() {
-  const { groups, isLoading, error, refetch } = useEnvironmentGroups();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { groups: realGroups, isLoading, error, refetch } = useEnvironmentGroups();
+  const groups = locked ? SAMPLE_PP_ENVIRONMENT_GROUPS : realGroups;
   const [searchQuery, setSearchQuery] = useState("");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -107,7 +112,11 @@ export default function Page() {
             Create Group
           </Button>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader
         title={`Environment Groups (${groups.length})`}
@@ -118,8 +127,10 @@ export default function Page() {
         <DataTable<EnvironmentGroupWithEnvironments>
           data={groups}
           keyExtractor={(group) => group.id}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           searchValue={searchQuery}
           sortEnabled
           defaultSortField="displayName"

@@ -300,7 +300,7 @@ export default function Page() {
           />
 
           {!isLoading && recommendations && (
-            <section className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
+            <section className="rounded-xl border border-(--custom-table-border) bg-(--custom-table-bg) p-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   {recommendations.recommendations.length === 0 ? <CheckCircle2 className="h-5 w-5 text-success-400" /> : <AlertTriangle className="h-5 w-5 text-warning-400" />}

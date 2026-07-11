@@ -8,6 +8,9 @@ import { Badge } from "@/src/components/ui/display/Badge";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { useImportJobs } from "@/src/hooks/data/useImportJobs";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_IMPORT_JOBS, SAMPLE_PP_ENVIRONMENTS } from "@/src/lib/sampleData/powerPlatform";
 import { ImportWizard } from "./ImportWizard";
 import { ImportResultPanel } from "./ImportResultPanel";
 import type { ImportJob } from "@/src/types/powerPlatform";
@@ -26,8 +29,11 @@ function statusLabel(status: ImportJob["status"]): string {
 }
 
 export default function Page() {
-  const { jobs, isLoading, error, refetch } = useImportJobs();
-  const { environments } = useEnvironments();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { jobs: realJobs, isLoading, error, refetch } = useImportJobs();
+  const { environments: realEnvironments } = useEnvironments();
+  const jobs = locked ? SAMPLE_PP_IMPORT_JOBS : realJobs;
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
   const [environmentUrl, setEnvironmentUrl] = useState("");
   const [showWizard, setShowWizard] = useState(false);
   const [result, setResult] = useState<ImportJob | null>(null);
@@ -71,7 +77,11 @@ export default function Page() {
             </Button>
           )
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       {showWizard && (
         <ImportWizard
@@ -88,8 +98,10 @@ export default function Page() {
           <DataTable<ImportJob>
             data={jobs}
             keyExtractor={(job) => job.id}
-            loading={isLoading}
-            error={error?.message}
+            loading={!locked && isLoading}
+            error={locked ? undefined : error?.message}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             sortEnabled
             defaultSortField="createdAt"
             defaultSortDir="desc"

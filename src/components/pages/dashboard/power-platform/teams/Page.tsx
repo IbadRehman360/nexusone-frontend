@@ -5,10 +5,14 @@ import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
 import { DataTableMainHeader } from "@/src/components/ui/display/DataTable/DataTableMainHeader";
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Button } from "@/src/components/ui/inputs/Button";
+import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { EnvironmentSelect } from "@/src/components/power-platform/EnvironmentSelect";
 import { useTeams } from "@/src/hooks/data/useTeams";
 import { useBusinessUnits } from "@/src/hooks/data/useBusinessUnits";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_TEAMS } from "@/src/lib/sampleData/powerPlatform";
 import { CreateTeamModal } from "./CreateTeamModal";
 import { ManageTeamModal } from "./ManageTeamModal";
 import type { Team } from "@/src/types/powerPlatform";
@@ -16,10 +20,12 @@ import { UsersThree } from "@phosphor-icons/react";
 import { Cloud, Plus, Settings2 } from "lucide-react";
 
 export default function Page() {
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const [environmentUrl, setEnvironmentUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const { teams, isLoading, error, refetch } = useTeams(environmentUrl);
-  const { businessUnits } = useBusinessUnits(environmentUrl);
+  const { teams: realTeams, isLoading, error, refetch } = useTeams(locked ? undefined : environmentUrl);
+  const teams = locked ? SAMPLE_PP_TEAMS : realTeams;
+  const { businessUnits } = useBusinessUnits(locked ? "" : environmentUrl);
   const { environments } = useEnvironments();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [manageTeam, setManageTeam] = useState<Team | null>(null);
@@ -40,20 +46,37 @@ export default function Page() {
             Create Team
           </Button>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader
         title={`Teams (${teams.length})`}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search teams…"
-        headerRight={<EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />}
+        headerRight={
+          locked ? (
+            <Dropdown
+              value="sample-env-prod"
+              onChange={() => {}}
+              disabled
+              options={[{ value: "sample-env-prod", label: "Contoso Production" }]}
+            />
+          ) : (
+            <EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />
+          )
+        }
       >
         <DataTable<Team>
           data={teams}
           keyExtractor={(team) => team.teamId}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           searchValue={searchQuery}
           sortEnabled
           defaultSortField="name"

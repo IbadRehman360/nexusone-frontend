@@ -4,8 +4,12 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
 import { DataTableMainHeader } from "@/src/components/ui/display/DataTable/DataTableMainHeader";
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
+import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { EnvironmentSelect } from "@/src/components/power-platform/EnvironmentSelect";
 import { useRoles } from "@/src/hooks/data/useRoles";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_SECURITY_ROLES } from "@/src/lib/sampleData/powerPlatform";
 import type { Role } from "@/src/types/powerPlatform";
 import { ShieldCheck, Cloud } from "lucide-react";
 
@@ -40,9 +44,11 @@ function groupRolesByName(roles: Role[]): GroupedRole[] {
 }
 
 export default function Page() {
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const [environmentUrl, setEnvironmentUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const { roles, isLoading, error } = useRoles(environmentUrl);
+  const { roles: realRoles, isLoading, error } = useRoles(locked ? "" : environmentUrl);
+  const roles = locked ? SAMPLE_PP_SECURITY_ROLES : realRoles;
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
 
   const groupedRoles = useMemo(() => groupRolesByName(roles), [roles]);
@@ -65,20 +71,37 @@ export default function Page() {
           { label: "Power Platform", href: "/dashboard/power-platform", icon: Cloud },
           { label: "Security Roles", icon: ShieldCheck },
         ]}
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader
         title={`Security Roles (${groupedRoles.length})`}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search roles…"
-        headerRight={<EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />}
+        headerRight={
+          locked ? (
+            <Dropdown
+              value="sample-env-prod"
+              onChange={() => {}}
+              disabled
+              options={[{ value: "sample-env-prod", label: "Contoso Production" }]}
+            />
+          ) : (
+            <EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />
+          )
+        }
       >
         <DataTable<GroupedRole>
           data={groupedRoles}
           keyExtractor={(role) => role.roleId}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           searchValue={searchQuery}
           sortEnabled
           defaultSortField="roleName"

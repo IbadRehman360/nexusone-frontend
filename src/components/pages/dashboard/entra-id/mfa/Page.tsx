@@ -508,7 +508,7 @@ export default function Page() {
             <Tabs variant="pill" tabs={TABS} activeTab={view} onChange={setView} />
 
             {view === "users" && <MfaUsersTab users={users} isLoading={tierLoading || isLoading} error={error?.message} onRowClick={(u) => setDrawerId(u.id)} />}
-            {view === "posture" && <div className="rounded-2xl border border-(--custom-table-border) bg-card">{<MfaPostureTab />}</div>}
+            {view === "posture" && <div className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg)">{<MfaPostureTab />}</div>}
             {view === "policy" && <MfaPolicyTab />}
           </div>
 

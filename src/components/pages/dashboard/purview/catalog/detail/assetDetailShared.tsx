@@ -26,7 +26,7 @@ export function ClassificationBadge({ label }: { label: string }) {
 
 export function AssetSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-(--custom-table-border) bg-(--custom-table-bg) ${className}`}>
+    <div className={`rounded-xl border border-(--custom-table-border) bg-(--custom-table-bg) px-4 ${className}`}>
       {children}
     </div>
   );

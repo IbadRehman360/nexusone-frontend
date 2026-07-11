@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
+import { SectionCard } from "@/src/components/ui/display/SectionCard";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { Badge } from "@/src/components/ui/display/Badge";
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
@@ -45,9 +46,8 @@ export default function Page() {
         }
       />
 
-      <section className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
-        <p className="text-sm font-medium text-foreground">Select tenants</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+      <SectionCard title="Select tenants">
+        <div className="flex flex-wrap gap-2">
           {tenants.map((tenant) => (
             <label key={tenant.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-(--custom-table-border) px-3 py-1.5 text-sm text-foreground hover:bg-muted/10">
               <input type="checkbox" checked={selectedIds.includes(tenant.id)} onChange={() => toggle(tenant.id)} />
@@ -60,7 +60,7 @@ export default function Page() {
             Build Scorecard
           </Button>
         </div>
-      </section>
+      </SectionCard>
 
       {error && <p className="text-sm text-error-400">{error.message}</p>}
 
@@ -91,7 +91,7 @@ function ComplianceBoard({ grid, loading }: { grid: ArCompareGrid | null; loadin
   ];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-(--custom-table-border) bg-card">
+    <div className="overflow-hidden rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg)">
       <DataTable<ArCompareGrid["tenants"][number]>
         data={grid?.tenants ?? []}
         columns={columns}

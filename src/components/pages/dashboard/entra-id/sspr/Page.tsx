@@ -557,7 +557,7 @@ function SsprBody({
 
         {view === "users" && <SsprUsersTab users={users} isLoading={isLoading} error={error?.message} onRowClick={(u) => setDrawerId(u.id)} />}
         {view === "config" && <SsprConfigTab />}
-        {view === "usage" && <div className="rounded-2xl border border-(--custom-table-border) bg-card">{<SsprUsageTab />}</div>}
+        {view === "usage" && <div className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg)">{<SsprUsageTab />}</div>}
       </div>
 
       <SsprUserDrawer userId={drawerId} onClose={() => setDrawerId(null)} />

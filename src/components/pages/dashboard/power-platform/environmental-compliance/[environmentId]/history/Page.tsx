@@ -8,6 +8,9 @@ import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Badge } from "@/src/components/ui/display/Badge";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
 import { getComplianceHistory, runComplianceCheck } from "@/src/services/power-platform/complianceApi";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_ENVIRONMENTS, SAMPLE_PP_COMPLIANCE_HISTORY } from "@/src/lib/sampleData/powerPlatform";
 import { ComplianceDetailHeader } from "../ComplianceDetailHeader";
 import type { ComplianceReport } from "@/src/types/powerPlatform";
 import { History } from "lucide-react";
@@ -20,22 +23,31 @@ function statusVariant(status: ComplianceReport["status"]): "success" | "warning
 
 export default function Page() {
   const params = useParams<{ environmentId: string }>();
-  const { environments } = useEnvironments();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { environments: realEnvironments } = useEnvironments();
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
   const environment = environments.find((e) => e.environmentId === params.environmentId);
 
   const [history, setHistory] = useState<ComplianceReport[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!locked);
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
+    if (locked) return;
     setLoading(true);
     getComplianceHistory(params.environmentId)
       .then(setHistory)
       .catch(() => setHistory([]))
       .finally(() => setLoading(false));
-  }, [params.environmentId]);
+  }, [params.environmentId, locked]);
+
+  // Sample data is a static constant, so it's derived at render time rather
+  // than pushed into state via an effect (avoids a redundant extra render).
+  const activeHistory = locked ? SAMPLE_PP_COMPLIANCE_HISTORY : history;
+  const activeLoading = locked ? false : loading;
 
   const handleRunCheck = async () => {
+    if (locked) return;
     setRunning(true);
     try {
       const r = await runComplianceCheck(params.environmentId);
@@ -52,13 +64,17 @@ export default function Page() {
 
   return (
     <div className="space-y-6">
-      <ComplianceDetailHeader name={name} isHistory onRunCheck={handleRunCheck} running={running} />
+      <ComplianceDetailHeader name={name} isHistory onRunCheck={handleRunCheck} running={running} locked={locked} lockedTooltip={lockedTooltip} />
 
-      <DataTableMainHeader title={`History (${history.length})`}>
+      <ModuleConnectBanner module="pp" />
+
+      <DataTableMainHeader title={`History (${activeHistory.length})`}>
         <DataTable<ComplianceReport>
-          data={history}
+          data={activeHistory}
           keyExtractor={(r) => r.id}
-          loading={loading}
+          loading={activeLoading}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           columns={[
             {
               key: "checkedAt",

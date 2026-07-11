@@ -11,6 +11,9 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import StatsCard from "@/src/components/ui/display/StatsCard";
 import { useComplianceOverview } from "@/src/hooks/data/useComplianceOverview";
 import { runComplianceCheck } from "@/src/services/power-platform/complianceApi";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_COMPLIANCE_OVERVIEW } from "@/src/lib/sampleData/powerPlatform";
 import type { ComplianceOverviewItem } from "@/src/types/powerPlatform";
 import { CheckCircle2, AlertTriangle, XCircle, HelpCircle, Cloud, ClipboardList, History, Zap } from "lucide-react";
 import { ShieldCheck } from "@phosphor-icons/react";
@@ -24,7 +27,11 @@ function statusVariant(status: ComplianceOverviewItem["status"]): "success" | "w
 
 export default function Page() {
   const router = useRouter();
-  const { overview, isLoading, error, refetch } = useComplianceOverview();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { overview: realOverview, isLoading: realIsLoading, error: realError, refetch } = useComplianceOverview();
+  const overview = locked ? SAMPLE_PP_COMPLIANCE_OVERVIEW : realOverview;
+  const isLoading = locked ? false : realIsLoading;
+  const error = locked ? undefined : realError;
   const summary = overview?.summary;
   const items = overview?.items ?? [];
   const [runningId, setRunningId] = useState<string | null>(null);
@@ -35,6 +42,7 @@ export default function Page() {
   };
 
   const handleRunCheck = async (environmentId: string) => {
+    if (locked) return;
     setRunningId(environmentId);
     try {
       const r = await runComplianceCheck(environmentId);
@@ -58,6 +66,8 @@ export default function Page() {
         ]}
       />
 
+      <ModuleConnectBanner module="pp" />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard title="Compliant" value={summary?.compliant ?? 0} icon={CheckCircle2} color="green" isLoading={isLoading} />
         <StatsCard title="At Risk" value={summary?.at_risk ?? 0} icon={AlertTriangle} color="orange" isLoading={isLoading} />
@@ -71,6 +81,8 @@ export default function Page() {
           keyExtractor={(item) => item.environmentId}
           loading={isLoading}
           error={error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           sortEnabled
           defaultSortField="score"
           defaultSortDir="desc"

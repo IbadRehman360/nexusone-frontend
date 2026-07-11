@@ -16,6 +16,15 @@ import {
   useEnvironmentTables,
   useEnvironmentD365Apps,
 } from "@/src/hooks/data/useEnvironmentResources";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import {
+  SAMPLE_PP_APPS,
+  SAMPLE_PP_FLOWS,
+  SAMPLE_PP_PAGES,
+  SAMPLE_PP_D365_APPS,
+  SAMPLE_PP_TABLES,
+} from "@/src/lib/sampleData/powerPlatform";
 import { Button } from "@/src/components/ui/inputs/Button";
 import type { PowerApp, PowerFlow, PowerPage, DataverseTable, D365App } from "@/src/types/powerPlatformResources";
 import { LayoutGrid, Workflow, FileText, Table as TableIcon, Cloud, ExternalLink, Settings2 } from "lucide-react";
@@ -32,15 +41,34 @@ export default function Page() {
   const [tab, setTab] = useState<TabId>("apps");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const { environments } = useEnvironments();
   const environmentId = environments.find((e) => e.environmentUrl === environmentUrl)?.environmentId ?? "";
   const environmentName = environments.find((e) => e.environmentUrl === environmentUrl)?.environmentDisplayName;
 
-  const { apps, isLoading: appsLoading, error: appsError } = useEnvironmentApps(environmentId);
-  const { flows, isLoading: flowsLoading, error: flowsError } = useEnvironmentFlows(environmentId);
-  const { pages, isLoading: pagesLoading, error: pagesError } = useEnvironmentPages(environmentId);
-  const { tables, isLoading: tablesLoading, error: tablesError } = useEnvironmentTables(environmentId, environmentUrl);
-  const { apps: d365Apps, isLoading: d365Loading, error: d365Error } = useEnvironmentD365Apps(environmentId);
+  const { apps: realApps, isLoading: realAppsLoading, error: realAppsError } = useEnvironmentApps(environmentId);
+  const { flows: realFlows, isLoading: realFlowsLoading, error: realFlowsError } = useEnvironmentFlows(environmentId);
+  const { pages: realPages, isLoading: realPagesLoading, error: realPagesError } = useEnvironmentPages(environmentId);
+  const { tables: realTables, isLoading: realTablesLoading, error: realTablesError } = useEnvironmentTables(environmentId, environmentUrl);
+  const { apps: realD365Apps, isLoading: realD365Loading, error: realD365Error } = useEnvironmentD365Apps(environmentId);
+
+  const apps = locked ? SAMPLE_PP_APPS : realApps;
+  const flows = locked ? SAMPLE_PP_FLOWS : realFlows;
+  const pages = locked ? SAMPLE_PP_PAGES : realPages;
+  const tables = locked ? SAMPLE_PP_TABLES : realTables;
+  const d365Apps = locked ? SAMPLE_PP_D365_APPS : realD365Apps;
+
+  const appsLoading = locked ? false : realAppsLoading;
+  const flowsLoading = locked ? false : realFlowsLoading;
+  const pagesLoading = locked ? false : realPagesLoading;
+  const tablesLoading = locked ? false : realTablesLoading;
+  const d365Loading = locked ? false : realD365Loading;
+
+  const appsError = locked ? undefined : realAppsError;
+  const flowsError = locked ? undefined : realFlowsError;
+  const pagesError = locked ? undefined : realPagesError;
+  const tablesError = locked ? undefined : realTablesError;
+  const d365Error = locked ? undefined : realD365Error;
 
   const activeFlows = flows.filter((f) => f.properties.state === "Started").length;
 
@@ -72,6 +100,8 @@ export default function Page() {
         ]}
       />
 
+      <ModuleConnectBanner module="pp" />
+
       <StatsCarousel cards={statCards} />
 
       <DataTableMainHeader
@@ -95,6 +125,8 @@ export default function Page() {
             loading={appsLoading}
             error={appsError?.message}
             searchValue={searchQuery}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             columns={[
               { key: "displayName", header: "App", render: (_, app) => <span className="text-xs font-semibold text-foreground">{app.properties.displayName}</span> },
               { key: "appType", header: "Type", render: (_, app) => <span className="text-xs text-muted-foreground">{app.properties.appType ?? app.type ?? "—"}</span> },
@@ -149,6 +181,8 @@ export default function Page() {
             loading={flowsLoading}
             error={flowsError?.message}
             searchValue={searchQuery}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             columns={[
               { key: "displayName", header: "Name", render: (_, flow) => <span className="text-xs font-semibold text-foreground">{flow.properties.displayName}</span> },
               { key: "state", header: "State", render: (_, flow) => <span className="text-xs text-muted-foreground">{flow.properties.state}</span> },
@@ -164,6 +198,8 @@ export default function Page() {
             loading={pagesLoading}
             error={pagesError?.message}
             searchValue={searchQuery}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             columns={[
               { key: "displayName", header: "Name", render: (_, page) => <span className="text-xs font-semibold text-foreground">{page.properties.displayName}</span> },
               { key: "status", header: "Status", render: (_, page) => <span className="text-xs text-muted-foreground">{page.properties.status ?? "—"}</span> },
@@ -179,6 +215,8 @@ export default function Page() {
             loading={d365Loading}
             error={d365Error?.message}
             searchValue={searchQuery}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             columns={[
               { key: "name", header: "Name", render: (_, app) => <span className="text-xs font-semibold text-foreground">{app.name}</span> },
               { key: "publisher", header: "Publisher", render: (_, app) => <span className="text-xs text-muted-foreground">{app.publisher ?? "—"}</span> },
@@ -194,6 +232,8 @@ export default function Page() {
             loading={tablesLoading}
             error={tablesError?.message}
             searchValue={searchQuery}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             columns={[
               { key: "displayName", header: "Name", render: (_, table) => <span className="text-xs font-semibold text-foreground">{table.displayName}</span> },
               { key: "logicalName", header: "Logical Name", hideOnMobile: true, render: (_, table) => <span className="text-xs text-muted-foreground font-mono">{table.logicalName}</span> },

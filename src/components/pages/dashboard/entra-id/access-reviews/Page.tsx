@@ -97,7 +97,7 @@ function InsightCard({ insight }: { insight: ArInsight }) {
 
 function ArLicenseRequired() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-(--custom-table-border) bg-card px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg) px-6 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning-400/10 text-warning-400">
         <Lock size={22} />
       </div>
@@ -322,7 +322,7 @@ export default function Page() {
           />
 
           {!isLoading && insights && insights.insights.length > 0 && (
-            <section className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
+            <section className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg) p-5">
               <div className="grid gap-3">
                 {insights.insights.map((insight) => (
                   <InsightCard key={insight.id} insight={insight} />

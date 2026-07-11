@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
 import { StatsCarousel } from "@/src/components/ui/display/StatsCarousel";
+import { SectionCard } from "@/src/components/ui/display/SectionCard";
 import { DataTableMainHeader } from "@/src/components/ui/display/DataTable/DataTableMainHeader";
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
@@ -241,8 +242,7 @@ export default function Page() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
-          <p className="text-xs font-semibold text-foreground mb-4">Scan Results Breakdown</p>
+        <SectionCard title="Scan Results Breakdown">
           <div className="space-y-3">
             {resultCounts.map((bucket) => (
               <div key={bucket.key}>
@@ -256,10 +256,9 @@ export default function Page() {
               </div>
             ))}
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
-          <p className="text-xs font-semibold text-foreground mb-4">Classification Coverage by Source</p>
+        <SectionCard title="Classification Coverage by Source">
           {coverageRows.length === 0 ? (
             <p className="text-xs text-muted-foreground">No scan data available yet.</p>
           ) : (
@@ -279,7 +278,7 @@ export default function Page() {
               ))}
             </div>
           )}
-        </div>
+        </SectionCard>
       </div>
 
       <DataTableMainHeader

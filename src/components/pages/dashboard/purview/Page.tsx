@@ -1,11 +1,10 @@
 "use client";
 
 import { createElement, useMemo } from "react";
-import Link from "next/link";
 import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
 import { StatsCarousel } from "@/src/components/ui/display/StatsCarousel";
+import { SectionCard } from "@/src/components/ui/display/SectionCard";
 import {
-  ArrowUpRight,
   ShieldCheck,
   Database,
   Tag,
@@ -29,34 +28,6 @@ import { ScanTrendChart } from "./overview/ScanTrendChart";
 import { DlpTrendChart } from "./overview/DlpTrendChart";
 import { DlpOverviewPanel } from "./overview/DlpOverviewPanel";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
-
-interface SectionCardProps {
-  title: string;
-  subtitle?: string;
-  viewHref?: string;
-  viewLabel?: string;
-  children: React.ReactNode;
-}
-
-function SectionCard({ title, subtitle, viewHref, viewLabel = "View all", children }: SectionCardProps) {
-  return (
-    <div className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div>
-          <p className="text-xs font-semibold text-foreground">{title}</p>
-          {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
-        </div>
-        {viewHref && (
-          <Link href={viewHref} className="flex items-center gap-1 text-[11px] text-info-400 hover:underline shrink-0">
-            {viewLabel}
-            <ArrowUpRight size={11} />
-          </Link>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
 
 export default function Page() {
   const { catalogStats, isLoading: catalogLoading } = useCatalogStats();

@@ -8,13 +8,19 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Badge } from "@/src/components/ui/display/Badge";
 import { FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_ENVIRONMENTS } from "@/src/lib/sampleData/powerPlatform";
 import { updateEnvironment } from "@/src/services/power-platform/environmentApi";
 import { Globe, Cloud, ArrowLeft, Save } from "lucide-react";
 
 export default function Page() {
   const params = useParams<{ environmentId: string }>();
   const router = useRouter();
-  const { environments, isLoading, refetch } = useEnvironments();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { environments: realEnvironments, isLoading: realIsLoading, refetch } = useEnvironments();
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
+  const isLoading = locked ? false : realIsLoading;
   const environment = environments.find((env) => env.environmentId === params.environmentId);
 
   const [displayName, setDisplayName] = useState("");
@@ -29,7 +35,7 @@ export default function Page() {
   }, [environment]);
 
   const handleSave = async () => {
-    if (!environment || !displayName.trim()) return;
+    if (locked || !environment || !displayName.trim()) return;
     setSubmitting(true);
     try {
       await updateEnvironment(environment.environmentId, {
@@ -87,6 +93,8 @@ export default function Page() {
         }
       />
 
+      <ModuleConnectBanner module="pp" />
+
       <div className="bg-(--custom-table-bg) border border-(--custom-table-border) rounded-2xl p-5">
         <h2 className="text-sm font-semibold text-foreground mb-4">Details</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -117,9 +125,9 @@ export default function Page() {
         )}
       </div>
 
-      <div className="bg-(--custom-table-bg) border border-(--custom-table-border) rounded-2xl p-5">
+      <div className="bg-(--custom-table-bg) border border-(--custom-table-border) rounded-2xl p-5" title={locked ? lockedTooltip : undefined}>
         <h2 className="text-sm font-semibold text-foreground mb-4">Edit</h2>
-        <div className="space-y-4 max-w-lg">
+        <div className={locked ? "space-y-4 max-w-lg opacity-50 pointer-events-none cursor-not-allowed" : "space-y-4 max-w-lg"} aria-disabled={locked || undefined}>
           <FormField label="Display Name" required>
             <input
               type="text"
@@ -136,7 +144,7 @@ export default function Page() {
               className={formInputClass() + " resize-none"}
             />
           </FormField>
-          <Button size="sm" leftIcon={<Save size={14} />} onClick={handleSave} disabled={!displayName.trim()} loading={submitting}>
+          <Button size="sm" leftIcon={<Save size={14} />} onClick={handleSave} disabled={locked || !displayName.trim()} loading={submitting}>
             Save Changes
           </Button>
         </div>

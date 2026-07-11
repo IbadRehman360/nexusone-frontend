@@ -12,6 +12,9 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { Tabs } from "@/src/components/ui/navigation/Tabs";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
 import { useBackups } from "@/src/hooks/data/useBackups";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_ENVIRONMENTS, SAMPLE_PP_BACKUPS, SAMPLE_PP_BACKUP_SCHEDULE } from "@/src/lib/sampleData/powerPlatform";
 import { deleteBackup, deleteBackupSchedule, listBackupSchedules, syncBackupStatus } from "@/src/services/power-platform/backupsApi";
 import { CreateBackupModal } from "./CreateBackupModal";
 import { RestoreBackupSlideOver } from "./RestoreBackupSlideOver";
@@ -65,12 +68,16 @@ function expiresOn(createdIso: string): string {
 }
 
 export default function Page() {
-  const { environments } = useEnvironments();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { environments: realEnvironments } = useEnvironments();
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
   const [environmentId, setEnvironmentId] = useState("");
   const activeEnvId = environmentId || environments[0]?.environmentId || "";
   const activeEnv = environments.find((e) => e.environmentId === activeEnvId);
   const activeEnvName = activeEnv?.environmentDisplayName ?? activeEnv?.displayName ?? activeEnv?.environmentName ?? "";
-  const { backups, isLoading, error, refetch } = useBackups(activeEnvId);
+  const { backups: realBackups, isLoading: realIsLoading, error, refetch } = useBackups(activeEnvId);
+  const backups = locked ? SAMPLE_PP_BACKUPS : realBackups;
+  const isLoading = locked ? false : realIsLoading;
 
   const [activeTab, setActiveTab] = useState<BackupTabId>("schedule");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -81,8 +88,10 @@ export default function Page() {
   const [deleting, setDeleting] = useState(false);
   const [detailBackup, setDetailBackup] = useState<EnrichedBackup | null>(null);
 
-  const [schedule, setSchedule] = useState<BackupSchedule | null>(null);
-  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [realSchedule, setRealSchedule] = useState<BackupSchedule | null>(null);
+  const [realScheduleLoading, setRealScheduleLoading] = useState(false);
+  const schedule = locked ? SAMPLE_PP_BACKUP_SCHEDULE : realSchedule;
+  const scheduleLoading = locked ? false : realScheduleLoading;
   const [scheduleDeleting, setScheduleDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [syncingRunId, setSyncingRunId] = useState<string | null>(null);
@@ -103,18 +112,18 @@ export default function Page() {
   };
 
   const loadSchedule = () => {
-    if (!activeEnvId) return;
-    setScheduleLoading(true);
+    if (!activeEnvId || locked) return;
+    setRealScheduleLoading(true);
     listBackupSchedules(activeEnvId)
-      .then((schedules) => setSchedule(schedules[0] ?? null))
-      .catch(() => setSchedule(null))
-      .finally(() => setScheduleLoading(false));
+      .then((schedules) => setRealSchedule(schedules[0] ?? null))
+      .catch(() => setRealSchedule(null))
+      .finally(() => setRealScheduleLoading(false));
   };
 
   useEffect(() => {
     loadSchedule();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeEnvId]);
+  }, [activeEnvId, locked]);
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
@@ -137,7 +146,7 @@ export default function Page() {
     try {
       await deleteBackupSchedule(schedule.id);
       toast.success("Backup schedule removed");
-      setSchedule(null);
+      setRealSchedule(null);
     } catch (err) {
       toast.error("Failed to remove schedule", { description: err instanceof Error ? err.message : "Please try again." });
     } finally {
@@ -190,7 +199,11 @@ export default function Page() {
             </Button>
           </div>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <BackupStatsCards stats={stats} isLoading={isLoading || scheduleLoading} hasEnvironment={!!activeEnvId} />
 
@@ -205,8 +218,8 @@ export default function Page() {
                   size="sm"
                   leftIcon={<Calendar size={13} />}
                   onClick={() => setShowSchedule(true)}
-                  disabled={!activeEnvId || isRestoring}
-                  title={isRestoring ? "Unavailable during a restore" : undefined}
+                  disabled={!activeEnvId || isRestoring || locked}
+                  title={locked ? lockedTooltip : isRestoring ? "Unavailable during a restore" : undefined}
                 >
                   {schedule ? "Update schedule" : "Set schedule"}
                 </Button>
@@ -214,8 +227,8 @@ export default function Page() {
                   size="sm"
                   leftIcon={<Plus size={13} />}
                   onClick={() => setShowCreateModal(true)}
-                  disabled={!activeEnvId || isRestoring}
-                  title={isRestoring ? "Unavailable during a restore" : undefined}
+                  disabled={!activeEnvId || isRestoring || locked}
+                  title={locked ? lockedTooltip : isRestoring ? "Unavailable during a restore" : undefined}
                 >
                   Create backup
                 </Button>
@@ -224,6 +237,7 @@ export default function Page() {
             <Dropdown
               value={activeEnvId}
               onChange={setEnvironmentId}
+              disabled={locked}
               options={environments.map((env) => ({
                 value: env.environmentId,
                 label: env.environmentDisplayName ?? env.displayName ?? env.environmentName,
@@ -258,8 +272,10 @@ export default function Page() {
             <DataTable<EnrichedBackup>
               data={backups}
               keyExtractor={(backup) => backup.bapBackupId}
-              loading={isLoading}
-              error={error?.message}
+              loading={!locked && isLoading}
+              error={locked ? undefined : error?.message}
+              locked={locked}
+              lockedTooltip={lockedTooltip}
               sortEnabled
               defaultSortField="backupRequestDateTime"
               defaultSortDir="desc"

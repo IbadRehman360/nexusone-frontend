@@ -274,7 +274,7 @@ export default function Page() {
       />
 
       {!isLoading && recommendations && recommendations.recommendations.length > 0 && (
-        <section className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
+        <section className="rounded-xl border border-(--custom-table-border) bg-(--custom-table-bg) p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {recommendations.recommendations.map((rec) => (
               <RecommendationCard key={rec.id} recommendation={rec} />

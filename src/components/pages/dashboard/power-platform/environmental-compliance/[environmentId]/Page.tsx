@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { Badge } from "@/src/components/ui/display/Badge";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
 import { getLatestComplianceReport, runComplianceCheck } from "@/src/services/power-platform/complianceApi";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_ENVIRONMENTS, SAMPLE_PP_COMPLIANCE_REPORT } from "@/src/lib/sampleData/powerPlatform";
 import { ComplianceDetailHeader } from "./ComplianceDetailHeader";
 import type { ComplianceCheck, ComplianceReport } from "@/src/types/powerPlatform";
 import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, ClipboardList } from "lucide-react";
@@ -25,24 +28,34 @@ const CHECK_ICON: Record<ComplianceCheck["status"], { icon: typeof CheckCircle2;
 
 export default function Page() {
   const params = useParams<{ environmentId: string }>();
-  const { environments } = useEnvironments();
+  const { locked, lockedTooltip } = useModulePhase("pp");
+  const { environments: realEnvironments } = useEnvironments();
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
   const environment = environments.find((e) => e.environmentId === params.environmentId);
 
   const [report, setReport] = useState<ComplianceReport | null>(null);
-  const [reportLoading, setReportLoading] = useState(true);
+  const [reportLoading, setReportLoading] = useState(!locked);
   const [reportError, setReportError] = useState(false);
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
+    if (locked) return;
     setReportLoading(true);
     setReportError(false);
     getLatestComplianceReport(params.environmentId)
       .then(setReport)
       .catch(() => setReportError(true))
       .finally(() => setReportLoading(false));
-  }, [params.environmentId]);
+  }, [params.environmentId, locked]);
+
+  // Sample data is a static constant, so it's derived at render time rather
+  // than pushed into state via an effect (avoids a redundant extra render).
+  const activeReport = locked ? SAMPLE_PP_COMPLIANCE_REPORT : report;
+  const activeReportLoading = locked ? false : reportLoading;
+  const activeReportError = locked ? false : reportError;
 
   const handleRunCheck = async () => {
+    if (locked) return;
     setRunning(true);
     try {
       const r = await runComplianceCheck(params.environmentId);
@@ -60,12 +73,14 @@ export default function Page() {
 
   return (
     <div className="space-y-6">
-      <ComplianceDetailHeader name={name} onRunCheck={handleRunCheck} running={running} />
+      <ComplianceDetailHeader name={name} onRunCheck={handleRunCheck} running={running} locked={locked} lockedTooltip={lockedTooltip} />
+
+      <ModuleConnectBanner module="pp" />
 
       <div className="bg-(--custom-table-bg) border border-(--custom-table-border) rounded-2xl p-5">
-        {reportLoading ? (
+        {activeReportLoading ? (
           <p className="text-xs text-muted-foreground">Loading report…</p>
-        ) : reportError || !report ? (
+        ) : activeReportError || !activeReport ? (
           <div className="py-10 text-center">
             <ClipboardList size={22} className="mx-auto text-muted-foreground/40 mb-2" />
             <p className="text-sm font-medium text-foreground">No compliance report yet</p>
@@ -74,12 +89,12 @@ export default function Page() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-foreground tabular-nums">{report.score}%</span>
-              <Badge variant={statusVariant(report.status)}>{report.status.replace("_", " ")}</Badge>
-              <span className="text-xs text-muted-foreground ml-auto">Checked {new Date(report.checkedAt).toLocaleString()}</span>
+              <span className="text-2xl font-bold text-foreground tabular-nums">{activeReport.score}%</span>
+              <Badge variant={statusVariant(activeReport.status)}>{activeReport.status.replace("_", " ")}</Badge>
+              <span className="text-xs text-muted-foreground ml-auto">Checked {new Date(activeReport.checkedAt).toLocaleString()}</span>
             </div>
             <div className="space-y-2">
-              {report.checks.map((check) => {
+              {activeReport.checks.map((check) => {
                 const { icon: Icon, className } = CHECK_ICON[check.status];
                 return (
                   <div key={check.checkId} className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-muted/10 border border-border/30">

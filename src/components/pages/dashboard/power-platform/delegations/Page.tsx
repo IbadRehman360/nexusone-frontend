@@ -7,9 +7,13 @@ import { DataTableMainHeader } from "@/src/components/ui/display/DataTable/DataT
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { Modal } from "@/src/components/ui/overlays/Modal";
+import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { EnvironmentSelect } from "@/src/components/power-platform/EnvironmentSelect";
 import { usePPDelegations } from "@/src/hooks/data/usePPDelegations";
 import { useUsers } from "@/src/hooks/data/useUsers";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_DELEGATIONS } from "@/src/lib/sampleData/powerPlatform";
 import { revokeDelegation } from "@/src/services/power-platform/ppDelegationApi";
 import { CreateDelegationModal } from "./CreateDelegationModal";
 import type { PPDelegation } from "@/src/types/powerPlatform";
@@ -35,10 +39,12 @@ function daysUntil(dateStr: string): number {
 }
 
 export default function Page() {
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const [environmentUrl, setEnvironmentUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const { delegations, isLoading, error, refetch } = usePPDelegations(environmentUrl);
-  const { users } = useUsers(environmentUrl);
+  const { delegations: realDelegations, isLoading, error, refetch } = usePPDelegations(locked ? "" : environmentUrl);
+  const delegations = locked ? SAMPLE_PP_DELEGATIONS : realDelegations;
+  const { users } = useUsers(locked ? "" : environmentUrl);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<PPDelegation | null>(null);
   const [revoking, setRevoking] = useState(false);
@@ -72,20 +78,37 @@ export default function Page() {
             Create Delegation
           </Button>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader
         title={`Delegations (${delegations.length})`}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search delegations…"
-        headerRight={<EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />}
+        headerRight={
+          locked ? (
+            <Dropdown
+              value="sample-env-prod"
+              onChange={() => {}}
+              disabled
+              options={[{ value: "sample-env-prod", label: "Contoso Production" }]}
+            />
+          ) : (
+            <EnvironmentSelect value={environmentUrl} onChange={setEnvironmentUrl} />
+          )
+        }
       >
         <DataTable<PPDelegation>
           data={delegations}
           keyExtractor={(d) => d.id}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           searchValue={searchQuery}
           columns={[
             {

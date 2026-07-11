@@ -333,7 +333,7 @@ export default function Page() {
           />
 
           {!isLoading && insights && (
-            <section className="rounded-2xl border border-(--custom-table-border) bg-card p-5">
+            <section className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg) p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   {insights.insights.length === 0 ? <ShieldCheck className="h-5 w-5 text-success-400" /> : <ShieldAlert className="h-5 w-5 text-error-400" />}

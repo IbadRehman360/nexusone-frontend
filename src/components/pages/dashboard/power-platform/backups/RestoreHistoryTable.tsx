@@ -3,6 +3,8 @@
 import { DataTable } from "@/src/components/ui/display/DataTable/DataTable";
 import { Badge } from "@/src/components/ui/display/Badge";
 import { useRestoreHistory } from "@/src/hooks/data/useBackups";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { SAMPLE_PP_RESTORES } from "@/src/lib/sampleData/powerPlatform";
 import type { RestoreRun } from "@/src/types/powerPlatform";
 import { History, Calendar, Archive } from "lucide-react";
 
@@ -23,7 +25,10 @@ interface RestoreHistoryTableProps {
 }
 
 export function RestoreHistoryTable({ environmentId }: RestoreHistoryTableProps) {
-  const { restores, isLoading } = useRestoreHistory(environmentId);
+  const { locked } = useModulePhase("pp");
+  const { restores: realRestores, isLoading: realIsLoading } = useRestoreHistory(environmentId);
+  const restores = locked ? SAMPLE_PP_RESTORES : realRestores;
+  const isLoading = locked ? false : realIsLoading;
 
   return (
     <DataTable<RestoreRun>

@@ -13,6 +13,9 @@ import { usePpDlpPolicies } from "@/src/hooks/data/usePpDlpPolicies";
 import { getDlpPolicyDetail, deleteDlpPolicy, fetchAuditActivity } from "@/src/services/power-platform/ppGovernanceApi";
 import { DlpPolicyDetailPanel } from "./DlpPolicyDetailPanel";
 import { DlpPolicyModal } from "./DlpPolicyModal";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_DLP_POLICIES, SAMPLE_PP_DLP_ACTIVITY, SAMPLE_PP_DLP_POLICY_DETAILS } from "@/src/lib/sampleData/powerPlatform";
 import type { PpDlpPolicySummary, PpDlpPolicyDetail, UnifiedAuditActivity } from "@/src/types/powerPlatform";
 import { ShieldCheck, Cloud, Plus, FileClock, Pencil, Trash2 } from "lucide-react";
 
@@ -26,9 +29,11 @@ function activityCategoryVariant(category: UnifiedAuditActivity["category"]): "i
 }
 
 export default function Page() {
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const [tab, setTab] = useState<TabId>("policies");
   const [searchQuery, setSearchQuery] = useState("");
-  const { policies, isLoading, error, refetch } = usePpDlpPolicies();
+  const { policies: realPolicies, isLoading, error, refetch } = usePpDlpPolicies();
+  const policies = locked ? SAMPLE_PP_DLP_POLICIES : realPolicies;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<PpDlpPolicyDetail | null>(null);
@@ -39,10 +44,16 @@ export default function Page() {
   const [deleteTarget, setDeleteTarget] = useState<PpDlpPolicySummary | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const [activity, setActivity] = useState<UnifiedAuditActivity[]>([]);
-  const [activityLoading, setActivityLoading] = useState(false);
+  const [realActivity, setRealActivity] = useState<UnifiedAuditActivity[]>([]);
+  const [realActivityLoading, setRealActivityLoading] = useState(false);
+  const activity = locked ? SAMPLE_PP_DLP_ACTIVITY : realActivity;
+  const activityLoading = locked ? false : realActivityLoading;
 
   const loadDetail = async (id: string) => {
+    if (locked) {
+      setDetail(SAMPLE_PP_DLP_POLICY_DETAILS[id] ?? null);
+      return;
+    }
     setDetailLoading(true);
     setDetail(null);
     try {
@@ -66,6 +77,7 @@ export default function Page() {
   };
 
   const handleOpenEdit = async (id: string) => {
+    if (locked) return;
     setDetailLoading(true);
     try {
       const d = await getDlpPolicyDetail(id);
@@ -95,15 +107,15 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (tab !== "activity") return;
+    if (tab !== "activity" || locked) return;
     let cancelled = false;
-    setActivityLoading(true);
+    setRealActivityLoading(true);
     fetchAuditActivity()
-      .then((a) => { if (!cancelled) setActivity(a); })
-      .catch(() => { if (!cancelled) setActivity([]); })
-      .finally(() => { if (!cancelled) setActivityLoading(false); });
+      .then((a) => { if (!cancelled) setRealActivity(a); })
+      .catch(() => { if (!cancelled) setRealActivity([]); })
+      .finally(() => { if (!cancelled) setRealActivityLoading(false); });
     return () => { cancelled = true; };
-  }, [tab]);
+  }, [tab, locked]);
 
   return (
     <div className="space-y-6">
@@ -119,7 +131,11 @@ export default function Page() {
             New Policy
           </Button>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      <ModuleConnectBanner module="pp" />
 
       {tab === "policies" ? (
         <DataTableMainHeader
@@ -142,8 +158,10 @@ export default function Page() {
           <DataTable<PpDlpPolicySummary>
             data={policies}
             keyExtractor={(policy) => policy.id}
-            loading={isLoading}
-            error={error?.message}
+            loading={!locked && isLoading}
+            error={locked ? undefined : error?.message}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
             searchValue={searchQuery}
             sortEnabled
             defaultSortField="name"
