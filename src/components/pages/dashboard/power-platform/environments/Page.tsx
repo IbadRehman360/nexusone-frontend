@@ -11,6 +11,9 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Switch } from "@/src/components/ui/inputs/Switch";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { SAMPLE_PP_ENVIRONMENTS } from "@/src/lib/sampleData/powerPlatform";
 import { createEnvironment, type CreateEnvironmentPayload } from "@/src/services/power-platform/environmentApi";
 import type { PowerPlatformEnvironment } from "@/src/types/powerPlatform";
 import { Globe, Cloud, Plus, Settings2 } from "lucide-react";
@@ -54,7 +57,9 @@ function StatusText({ state }: { state?: string }) {
 }
 
 export default function Page() {
-  const { environments, isLoading, error, refetch } = useEnvironments();
+  const { phase, locked, lockedTooltip } = useModulePhase("pp");
+  const { environments: realEnvironments, isLoading, error, refetch } = useEnvironments();
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState<CreateEnvironmentPayload>(emptyCreateForm);
   const [submitting, setSubmitting] = useState(false);
@@ -94,14 +99,20 @@ export default function Page() {
             Create Environment
           </Button>
         }
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      {phase === "trialing" && <ModuleConnectBanner module="pp" />}
 
       <DataTableMainHeader title={`Environments (${environments.length})`}>
         <DataTable<PowerPlatformEnvironment>
           data={environments}
           keyExtractor={(env) => env.environmentId}
-          loading={isLoading}
-          error={error?.message}
+          loading={!locked && isLoading}
+          error={locked ? undefined : error?.message}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
           sortEnabled
           defaultSortField="environmentDisplayName"
           defaultSortDir="asc"

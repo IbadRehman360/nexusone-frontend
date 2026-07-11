@@ -9,15 +9,33 @@ import { useResourceSummary } from "@/src/hooks/data/useResourceSummary";
 import { useComplianceOverview } from "@/src/hooks/data/useComplianceOverview";
 import { usePpDlpPolicies } from "@/src/hooks/data/usePpDlpPolicies";
 import { useImportJobs } from "@/src/hooks/data/useImportJobs";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import {
+  SAMPLE_PP_ENVIRONMENTS,
+  SAMPLE_PP_ENVIRONMENT_GROUPS,
+  SAMPLE_PP_RESOURCE_SUMMARY,
+  SAMPLE_PP_COMPLIANCE_OVERVIEW,
+  SAMPLE_PP_DLP_POLICIES,
+  SAMPLE_PP_IMPORT_JOBS,
+} from "@/src/lib/sampleData/powerPlatform";
 import { HomeHeader } from "./HomeHeader";
 
 export default function Page() {
-  const { environments, isLoading: envLoading } = useEnvironments();
-  const { groups, isLoading: groupsLoading } = useEnvironmentGroups();
-  const { summary, isLoading: summaryLoading } = useResourceSummary();
-  const { overview, isLoading: complianceLoading } = useComplianceOverview();
-  const { policies, isLoading: policiesLoading } = usePpDlpPolicies();
-  const { jobs, isLoading: jobsLoading } = useImportJobs();
+  const { phase, locked } = useModulePhase("pp");
+  const { environments: realEnvironments, isLoading: envLoading } = useEnvironments();
+  const { groups: realGroups, isLoading: groupsLoading } = useEnvironmentGroups();
+  const { summary: realSummary, isLoading: summaryLoading } = useResourceSummary();
+  const { overview: realOverview, isLoading: complianceLoading } = useComplianceOverview();
+  const { policies: realPolicies, isLoading: policiesLoading } = usePpDlpPolicies();
+  const { jobs: realJobs, isLoading: jobsLoading } = useImportJobs();
+
+  const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
+  const groups = locked ? SAMPLE_PP_ENVIRONMENT_GROUPS : realGroups;
+  const summary = locked ? SAMPLE_PP_RESOURCE_SUMMARY : realSummary;
+  const overview = locked ? SAMPLE_PP_COMPLIANCE_OVERVIEW : realOverview;
+  const policies = locked ? SAMPLE_PP_DLP_POLICIES : realPolicies;
+  const jobs = locked ? SAMPLE_PP_IMPORT_JOBS : realJobs;
 
   const cards: StatsCardProps[] = [
     {
@@ -26,7 +44,7 @@ export default function Page() {
       subtitle: "Power Platform",
       icon: Globe,
       color: "blue",
-      isLoading: envLoading,
+      isLoading: !locked && envLoading,
       href: "/dashboard/power-platform/environments",
     },
     {
@@ -35,7 +53,7 @@ export default function Page() {
       subtitle: "Resources",
       icon: LayoutGrid,
       color: "purple",
-      isLoading: summaryLoading,
+      isLoading: !locked && summaryLoading,
       href: "/dashboard/power-platform/resources",
     },
     {
@@ -44,7 +62,7 @@ export default function Page() {
       subtitle: "Power Platform",
       icon: Layers,
       color: "orange",
-      isLoading: groupsLoading,
+      isLoading: !locked && groupsLoading,
       href: "/dashboard/power-platform/environment-groups",
     },
     {
@@ -53,7 +71,7 @@ export default function Page() {
       subtitle: "Of total checked",
       icon: ShieldCheck,
       color: "green",
-      isLoading: complianceLoading,
+      isLoading: !locked && complianceLoading,
       href: "/dashboard/power-platform/environmental-compliance",
     },
     {
@@ -62,7 +80,7 @@ export default function Page() {
       subtitle: "Power Platform",
       icon: ShieldAlert,
       color: "red",
-      isLoading: policiesLoading,
+      isLoading: !locked && policiesLoading,
       href: "/dashboard/power-platform/dlp-policies",
     },
     {
@@ -71,7 +89,7 @@ export default function Page() {
       subtitle: "Power Platform",
       icon: UploadCloud,
       color: "neutral",
-      isLoading: jobsLoading,
+      isLoading: !locked && jobsLoading,
       href: "/dashboard/power-platform/import",
     },
   ];
@@ -79,6 +97,7 @@ export default function Page() {
   return (
     <div className="space-y-4">
       <HomeHeader />
+      {phase === "trialing" && <ModuleConnectBanner module="pp" />}
       <StatsCarousel cards={cards} />
     </div>
   );

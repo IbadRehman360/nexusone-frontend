@@ -16,7 +16,6 @@ import type { WebStorage } from 'redux-persist/es/types';
 import themeReducer from './slices/themeSlice';
 import themeCustomizationReducer from './slices/themeCustomizationSlice';
 import platformReducer from './slices/platformSlice';
-import trialReducer from './slices/trialSlice';
 
 // `redux-persist/lib/storage`'s prebuilt default instance probes
 // `window.localStorage` the moment the module is imported, so a plain
@@ -46,7 +45,6 @@ const rootReducer = combineReducers({
   theme: persistReducer(themePersistConfig, themeReducer),
   themeCustomization: persistReducer(themeCustomizationPersistConfig, themeCustomizationReducer),
   platform: platformReducer,
-  trial: trialReducer,
 });
 
 export const store = configureStore({

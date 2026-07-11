@@ -78,5 +78,9 @@ export interface DataTableProps<T> {
   onSelectionChange?: (keys: string[]) => void;
   onRowClick?: (item: T) => void;
 
+  /** When true, the `key: "actions"` column (by convention) renders disabled with a tooltip instead of calling its `render`. No subscription/module knowledge lives here — callers compute this (e.g. via `useModulePhase`). */
+  locked?: boolean;
+  lockedTooltip?: string;
+
   className?: string;
 }

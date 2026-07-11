@@ -15,6 +15,10 @@ export interface SubscriptionView {
    * A module can be in `paidModules` but not here: purchased, Connect
    * banner should show, sample data serves until the customer connects it. */
   connectedModules: string[];
+  /** Modules that have ever had a Stripe trial granted (see `ModuleTrialGrant`) —
+   * re-purchasing one of these gets a plain immediate charge, not a second
+   * free 14-day trial. Drives "Start Trial" vs "Purchase" copy. */
+  moduleTrialGrants: string[];
   modulesInTrial: string[];
   anyModuleInTrial: boolean;
   modulesInGrace: string[];

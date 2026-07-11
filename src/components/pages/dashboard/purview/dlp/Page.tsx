@@ -9,11 +9,14 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { ShieldAlert, ShieldCheck, TriangleAlert, Users, ToggleLeft } from "lucide-react";
 import { useDlpAlerts } from "@/src/hooks/data/usePurviewDlp";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { SAMPLE_DLP_ALERTS } from "@/src/lib/sampleData/purview";
 import { formatDateTime } from "@/src/lib/utils/dateFormat";
 import type { DlpAlert, DlpSeverity } from "@/src/types/purview";
 import { SeverityCell, StatusPill, resolvePolicyName } from "./dlpShared";
 import { DLP_SEVERITY_LABELS, REPEAT_OFFENDER_THRESHOLD } from "./dlpConstants";
 import { DlpAlertDetailPanel } from "./DlpAlertDetailPanel";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 
 const SEVERITY_ALL = { value: "all", label: "All Severities" };
 const LOCATION_ALL = { value: "all", label: "All Locations" };
@@ -29,7 +32,11 @@ export default function Page() {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  const { alerts, isLoading, error } = useDlpAlerts();
+  const { phase, locked, lockedTooltip } = useModulePhase("purview");
+  const { alerts: realAlerts, isLoading: realLoading, error: realError } = useDlpAlerts();
+  const alerts = locked ? SAMPLE_DLP_ALERTS : realAlerts;
+  const isLoading = locked ? false : realLoading;
+  const error = locked ? null : realError;
 
   const stats = useMemo(() => {
     const highSeverity = alerts.filter((a) => a.severity === "high").length;
@@ -144,7 +151,11 @@ export default function Page() {
           { label: "Purview", href: "/dashboard/purview", icon: ShieldCheck },
           { label: "DLP", icon: ShieldAlert },
         ]}
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      {phase === "trialing" && <ModuleConnectBanner module="purview" />}
 
       <StatsCarousel
         cards={[
@@ -194,6 +205,8 @@ export default function Page() {
             title: "No DLP incidents",
             description: "No policy matches found in the last 30 days.",
           }}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
         />
       </DataTableMainHeader>
 
@@ -232,6 +245,8 @@ export default function Page() {
               title: "No DLP alerts",
               description: "No data loss prevention incidents have been detected in the last 30 days.",
             }}
+            locked={locked}
+            lockedTooltip={lockedTooltip}
           />
         </DataTableMainHeader>
       </div>

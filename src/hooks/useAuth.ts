@@ -1,8 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMe, logout as logoutRequest, type SubscriptionView } from "@/src/services/auth";
+import { getMe, logout as logoutRequest } from "@/src/services/auth";
 import { setCurrentTenantId } from "@/src/lib/tenantContext";
-import { useAppSelector } from "@/src/store";
-import { resolveTrialOverride } from "@/src/store/slices/trialSlice";
 
 const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
 
@@ -17,7 +15,6 @@ const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
  */
 export function useAuth() {
   const queryClient = useQueryClient();
-  const devScenario = useAppSelector((s) => s.trial.scenario);
 
   const query = useQuery({
     queryKey: AUTH_ME_QUERY_KEY,
@@ -39,17 +36,8 @@ export function useAuth() {
     }
   };
 
-  // Dev-only: DevTestingPanel's Trial Testing tab overlays a fake subscription
-  // status onto the real user so the trial/grace/locked chip can be previewed
-  // without needing a tenant actually in that state.
-  const override = resolveTrialOverride(devScenario);
-  const user =
-    override && query.data
-      ? { ...query.data, subscription: { ...query.data.subscription, ...override } as SubscriptionView }
-      : query.data ?? null;
-
   return {
-    user,
+    user: query.data ?? null,
     isLoading: query.isLoading,
     isAuthenticated: !query.isLoading && !query.isError && !!query.data,
     logout,

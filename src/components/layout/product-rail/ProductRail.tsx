@@ -14,6 +14,7 @@ import { useThemeCustomization } from "@/src/hooks/useThemeCustomization";
 import { useAuth } from "@/src/hooks/useAuth";
 import { usePlatformUsers } from "@/src/hooks/data/usePlatformUsers";
 import { MembersPanel } from "@/src/components/layout/members-panel/MembersPanel";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import type { SubscriptionModule } from "@/src/components/auth/ModuleGuard";
 
 interface RailEntry {
@@ -34,7 +35,18 @@ const RAIL_ENTRIES: RailEntry[] = [
   { world: 'configuration',  icon: Gear,        label: 'Settings', href: '/dashboard/settings/members' },
 ];
 
-function RailButton({ entry, isActive, locked }: { entry: RailEntry; isActive: boolean; locked: boolean }) {
+function RailButton({
+  entry,
+  isActive,
+  locked,
+  statusDot,
+}: {
+  entry: RailEntry;
+  isActive: boolean;
+  locked: boolean;
+  /** "real" (module connected, real data) | "locked" (trialing or look-around sample data) | undefined (not module-gated). */
+  statusDot?: "real" | "locked";
+}) {
   const Icon = entry.icon;
 
   // Module not owned — fully inert, no navigation at all: a plain div (no
@@ -71,13 +83,21 @@ function RailButton({ entry, isActive, locked }: { entry: RailEntry; isActive: b
       )}
       <div
         className={cn(
-          "w-11 h-11 rounded-md flex items-center justify-center transition-colors duration-150 shrink-0",
+          "relative w-11 h-11 rounded-md flex items-center justify-center transition-colors duration-150 shrink-0",
           isActive
             ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-fg)]"
             : "text-(--nav-fg-dim) hover:bg-[var(--nav-active-hover)] hover:text-(--nav-fg-hover)",
         )}
       >
         <Icon size={22} weight={isActive ? "fill" : "regular"} />
+        {statusDot && (
+          <span
+            className={cn(
+              "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-(--nav-fg-dim,rgb(var(--shell-surface)))",
+              statusDot === "real" ? "bg-success-400" : "bg-warning-400",
+            )}
+          />
+        )}
       </div>
       <span
         className={cn(
@@ -107,6 +127,18 @@ export function ProductRail() {
   const onlineCount = platformUsers.filter((u) => u.isOnline).length;
   const [showMembers, setShowMembers] = useState(false);
 
+  // Called unconditionally, once per module — RAIL_ENTRIES also contains
+  // non-module entries (Home/Activity/Settings), so this can't live inside
+  // the .map() below without violating rules of hooks.
+  const entraPhase = useModulePhase("entra");
+  const ppPhase = useModulePhase("pp");
+  const purviewPhase = useModulePhase("purview");
+  const modulePhases: Record<SubscriptionModule, ReturnType<typeof useModulePhase>> = {
+    entra: entraPhase,
+    pp: ppPhase,
+    purview: purviewPhase,
+  };
+
   const handleSignOut = async () => {
     await logout();
     router.push("/signin");
@@ -122,20 +154,21 @@ export function ProductRail() {
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col items-center gap-2 w-full overflow-y-auto overflow-x-hidden no-scrollbar pb-2">
-        {RAIL_ENTRIES.map((entry) => (
-          <div key={entry.world} className="w-full flex flex-col items-center">
-            {entry.world === "monitoring" && <div className="w-8 h-px my-1.5 bg-(--custom-header-input-border)" />}
-            <RailButton
-              entry={entry}
-              isActive={activeWorld === entry.world}
-              locked={
-                entry.world === "configuration"
-                  ? false
-                  : isLocked || (!!entry.module && !(ownedModules?.includes(entry.module) ?? true))
-              }
-            />
-          </div>
-        ))}
+        {RAIL_ENTRIES.map((entry) => {
+          const fullyLocked =
+            entry.world === "configuration"
+              ? false
+              : isLocked || (!!entry.module && !(ownedModules?.includes(entry.module) ?? true));
+          const statusDot =
+            !fullyLocked && entry.module ? (modulePhases[entry.module].real ? "real" : "locked") : undefined;
+
+          return (
+            <div key={entry.world} className="w-full flex flex-col items-center">
+              {entry.world === "monitoring" && <div className="w-8 h-px my-1.5 bg-(--custom-header-input-border)" />}
+              <RailButton entry={entry} isActive={activeWorld === entry.world} locked={fullyLocked} statusDot={statusDot} />
+            </div>
+          );
+        })}
       </div>
 
       <div className="shrink-0 flex flex-col items-center gap-2 pb-6 w-full">

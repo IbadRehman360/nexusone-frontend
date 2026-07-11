@@ -16,7 +16,7 @@ interface ChipDef {
 function buildChip(status: SubscriptionView["status"] | undefined): ChipDef | null {
   switch (status) {
     case "TRIAL":
-      return { Icon: Clock, label: "Trial active", chipClass: "bg-info/10 border-info/20 text-info-400" };
+      return { Icon: Clock, label: "Preview", chipClass: "bg-info/10 border-info/20 text-info-400" };
     case "GRACE":
       return { Icon: AlertTriangle, label: "Grace period", chipClass: "bg-warning/10 border-warning/20 text-warning-400" };
     case "LOCKED":

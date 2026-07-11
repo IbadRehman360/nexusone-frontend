@@ -1,8 +1,6 @@
 import apiClient from "../client";
 import { BILLING_ROUTES } from "../routes";
 import { unwrap } from "../unwrap";
-import { isDev } from "@/src/lib/devHarness";
-import { store } from "@/src/store";
 
 export interface PlanListItem {
   id: string;
@@ -95,31 +93,6 @@ export interface SeatInfo {
   canManage: boolean;
 }
 
-/**
- * Dev-only: the "Trial active" scenario in DevTestingPanel is a pure
- * client-side preview (mid-trial IS the real default state, so there's no
- * backend override to switch to for it — unlike Grace/Locked/Active, which
- * hit the real /dev/impersonate/module-scenario endpoint and need no splice
- * here since the backend already returns the overridden data for those).
- */
-function isDevTrialScenarioActive(): boolean {
-  return isDev && typeof window !== "undefined" && store.getState().trial.scenario === "trial";
-}
-
-const TRIAL_BILLING_STATE_OVERRIDE: Partial<BillingState> = {
-  nexusStatus: "TRIAL",
-  stripeStatus: "trialing",
-  modules: ["entra", "pp", "purview"],
-  paidModules: [],
-  modulesInTrial: ["entra", "pp", "purview"],
-  anyModuleInTrial: true,
-  modulesInGrace: [],
-  anyModuleInGrace: false,
-  daysRemaining: 14,
-  hoursRemaining: 336,
-  invitesIncluded: 5,
-};
-
 export const listPlans = async (): Promise<BillingPlansResponse> => {
   const response = await apiClient.get(BILLING_ROUTES.PLANS);
   return unwrap<BillingPlansResponse>(response.data);
@@ -127,8 +100,7 @@ export const listPlans = async (): Promise<BillingPlansResponse> => {
 
 export const getBillingState = async (): Promise<BillingState> => {
   const response = await apiClient.get(BILLING_ROUTES.STATE);
-  const state = unwrap<BillingState>(response.data);
-  return isDevTrialScenarioActive() ? { ...state, ...TRIAL_BILLING_STATE_OVERRIDE } : state;
+  return unwrap<BillingState>(response.data);
 };
 
 export const redirectToCheckout = async (body: { planId: string } | { invitePackPlanId: string }): Promise<void> => {
@@ -161,13 +133,7 @@ export const retryModuleInvoice = async (moduleKey: string): Promise<void> => {
 
 export const getSeatInfo = async (): Promise<SeatInfo> => {
   const response = await apiClient.get(BILLING_ROUTES.SEATS);
-  const seats = unwrap<SeatInfo>(response.data);
-  if (isDevTrialScenarioActive()) {
-    // Trial hasn't purchased any modules, so the purchase ceiling is the free
-    // base only — mirrors the real backend's own TRIAL cap (see billing.service.ts).
-    return { ...seats, base: 5, purchased: 0, total: 5, maxTotal: 5, remaining: Math.max(0, 5 - seats.used), canManage: seats.canManage };
-  }
-  return seats;
+  return unwrap<SeatInfo>(response.data);
 };
 
 /** Sets the TOTAL seat count. Returns a Stripe Checkout URL when a seat subscription must first be created. */

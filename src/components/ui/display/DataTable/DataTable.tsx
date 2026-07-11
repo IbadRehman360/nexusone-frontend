@@ -34,6 +34,8 @@ export function DataTable<T>({
   selectable = false,
   onSelectionChange,
   onRowClick,
+  locked,
+  lockedTooltip,
   className,
 }: DataTableProps<T>) {
   // Internal state (uncontrolled defaults)
@@ -201,6 +203,8 @@ export function DataTable<T>({
                           selectable={selectable}
                           onClick={onRowClick}
                           index={index}
+                          locked={locked}
+                          lockedTooltip={lockedTooltip}
                         />
                       ))
                     )}

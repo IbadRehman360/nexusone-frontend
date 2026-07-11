@@ -1,0 +1,258 @@
+/**
+ * Curated sample data for the Power Platform module's look-around window.
+ * Shown when `useModulePhase('pp').locked` is true — shapes MUST match the
+ * real hooks' return types exactly (`useEnvironments`, `useEnvironmentGroups`,
+ * `useResourceSummary`, `useComplianceOverview`, `usePpDlpPolicies`,
+ * `useImportJobs`) so swapping the data source never changes render code.
+ */
+
+import type {
+  PowerPlatformEnvironment,
+  EnvironmentGroupWithEnvironments,
+  ResourceSummary,
+  ComplianceOverview,
+  PpDlpPolicySummary,
+  ImportJob,
+} from "@/src/types/powerPlatform";
+
+export const SAMPLE_PP_ENVIRONMENTS: PowerPlatformEnvironment[] = [
+  {
+    environmentId: "sample-env-prod",
+    environmentName: "contoso-production",
+    environmentDisplayName: "Contoso Production",
+    environmentUrl: "https://contoso-production.crm.dynamics.com",
+    displayName: "Contoso Production",
+    type: "Production",
+    region: "unitedstates",
+    state: "Ready",
+    hasDataverse: true,
+  },
+  {
+    environmentId: "sample-env-fin",
+    environmentName: "contoso-finance",
+    environmentDisplayName: "Finance & Operations",
+    environmentUrl: "https://contoso-finance.crm.dynamics.com",
+    displayName: "Finance & Operations",
+    type: "Production",
+    region: "unitedstates",
+    state: "Ready",
+    hasDataverse: true,
+  },
+  {
+    environmentId: "sample-env-hr",
+    environmentName: "contoso-hr-sandbox",
+    environmentDisplayName: "HR Sandbox",
+    environmentUrl: "https://contoso-hr-sandbox.crm.dynamics.com",
+    displayName: "HR Sandbox",
+    type: "Sandbox",
+    region: "europe",
+    state: "Ready",
+    hasDataverse: true,
+  },
+  {
+    environmentId: "sample-env-dev",
+    environmentName: "contoso-dev",
+    environmentDisplayName: "Developer Playground",
+    environmentUrl: "https://contoso-dev.crm.dynamics.com",
+    displayName: "Developer Playground",
+    type: "Developer",
+    region: "unitedstates",
+    state: "Ready",
+    hasDataverse: false,
+  },
+  {
+    environmentId: "sample-env-trial",
+    environmentName: "contoso-marketing-trial",
+    environmentDisplayName: "Marketing Trial",
+    environmentUrl: "https://contoso-marketing-trial.crm.dynamics.com",
+    displayName: "Marketing Trial",
+    type: "Trial",
+    region: "europe",
+    state: "Provisioning",
+    hasDataverse: false,
+  },
+];
+
+export const SAMPLE_PP_ENVIRONMENT_GROUPS: EnvironmentGroupWithEnvironments[] = [
+  {
+    id: "sample-group-prod",
+    displayName: "Production Environments",
+    description: "Customer-facing production workloads.",
+    createdAt: "2025-11-03T09:15:00.000Z",
+    updatedAt: "2026-04-18T14:02:00.000Z",
+    environments: [
+      { environmentId: "sample-env-prod", environmentName: "contoso-production", environmentUrl: "https://contoso-production.crm.dynamics.com" },
+      { environmentId: "sample-env-fin", environmentName: "contoso-finance", environmentUrl: "https://contoso-finance.crm.dynamics.com" },
+    ],
+  },
+  {
+    id: "sample-group-nonprod",
+    displayName: "Non-Production",
+    description: "Sandbox, developer, and trial environments used for testing.",
+    createdAt: "2025-12-11T11:30:00.000Z",
+    updatedAt: "2026-05-02T08:47:00.000Z",
+    environments: [
+      { environmentId: "sample-env-hr", environmentName: "contoso-hr-sandbox", environmentUrl: "https://contoso-hr-sandbox.crm.dynamics.com" },
+      { environmentId: "sample-env-dev", environmentName: "contoso-dev", environmentUrl: "https://contoso-dev.crm.dynamics.com" },
+      { environmentId: "sample-env-trial", environmentName: "contoso-marketing-trial", environmentUrl: "https://contoso-marketing-trial.crm.dynamics.com" },
+    ],
+  },
+];
+
+export const SAMPLE_PP_RESOURCE_SUMMARY: ResourceSummary = {
+  totals: {
+    environments: 5,
+    apps: 34,
+    flows: 58,
+    pages: 12,
+  },
+  byEnvironment: [
+    { environmentId: "sample-env-prod", environmentName: "contoso-production", apps: 14, flows: 22, pages: 6 },
+    { environmentId: "sample-env-fin", environmentName: "contoso-finance", apps: 9, flows: 17, pages: 4 },
+    { environmentId: "sample-env-hr", environmentName: "contoso-hr-sandbox", apps: 6, flows: 11, pages: 2 },
+    { environmentId: "sample-env-dev", environmentName: "contoso-dev", apps: 5, flows: 8, pages: 0 },
+    { environmentId: "sample-env-trial", environmentName: "contoso-marketing-trial", apps: 0, flows: 0, pages: 0 },
+  ],
+};
+
+export const SAMPLE_PP_COMPLIANCE_OVERVIEW: ComplianceOverview = {
+  items: [
+    { environmentId: "sample-env-prod", environmentName: "contoso-production", score: 96, status: "compliant", checkedAt: "2026-07-08T06:00:00.000Z" },
+    { environmentId: "sample-env-fin", environmentName: "contoso-finance", score: 91, status: "compliant", checkedAt: "2026-07-08T06:00:00.000Z" },
+    { environmentId: "sample-env-hr", environmentName: "contoso-hr-sandbox", score: 72, status: "at_risk", checkedAt: "2026-07-08T06:00:00.000Z" },
+    { environmentId: "sample-env-dev", environmentName: "contoso-dev", score: 58, status: "non_compliant", checkedAt: "2026-07-07T06:00:00.000Z" },
+    { environmentId: "sample-env-trial", environmentName: "contoso-marketing-trial", score: null, status: null, checkedAt: null },
+  ],
+  summary: {
+    total: 5,
+    compliant: 2,
+    at_risk: 1,
+    non_compliant: 1,
+    no_report: 1,
+  },
+};
+
+export const SAMPLE_PP_DLP_POLICIES: PpDlpPolicySummary[] = [
+  {
+    id: "sample-dlp-tenant-wide",
+    name: "Tenant-wide Default Policy",
+    isTenantWide: true,
+    environmentType: "AllEnvironments",
+    environments: [],
+    connectorCounts: { business: 18, nonBusiness: 42, blocked: 6 },
+    createdTime: "2025-10-02T08:00:00.000Z",
+    lastModifiedTime: "2026-06-11T13:20:00.000Z",
+  },
+  {
+    id: "sample-dlp-prod-only",
+    name: "Production Lockdown",
+    isTenantWide: false,
+    environmentType: "OnlyEnvironments",
+    environments: [
+      { id: "sample-env-prod", name: "contoso-production" },
+      { id: "sample-env-fin", name: "contoso-finance" },
+    ],
+    connectorCounts: { business: 12, nonBusiness: 8, blocked: 21 },
+    createdTime: "2025-11-20T10:30:00.000Z",
+    lastModifiedTime: "2026-05-27T09:45:00.000Z",
+  },
+  {
+    id: "sample-dlp-sandbox",
+    name: "Sandbox & Dev Baseline",
+    isTenantWide: false,
+    environmentType: "ExceptEnvironments",
+    environments: [
+      { id: "sample-env-hr", name: "contoso-hr-sandbox" },
+      { id: "sample-env-dev", name: "contoso-dev" },
+    ],
+    connectorCounts: { business: 25, nonBusiness: 30, blocked: 3 },
+    createdTime: "2026-01-14T15:10:00.000Z",
+    lastModifiedTime: "2026-04-02T11:05:00.000Z",
+  },
+];
+
+export const SAMPLE_PP_IMPORT_JOBS: ImportJob[] = [
+  {
+    id: "sample-import-accounts",
+    tenantId: "sample-tenant",
+    userId: "sample-user-1",
+    userEmail: "priya.shah@contoso.com",
+    environmentUrl: "https://contoso-production.crm.dynamics.com",
+    targetTable: "Account",
+    fileName: "accounts_q2_2026.csv",
+    totalRows: 1200,
+    successRows: 1200,
+    failedRows: 0,
+    status: "COMPLETED",
+    errorReport: null,
+    createdAt: "2026-06-20T09:00:00.000Z",
+    completedAt: "2026-06-20T09:04:12.000Z",
+  },
+  {
+    id: "sample-import-contacts",
+    tenantId: "sample-tenant",
+    userId: "sample-user-2",
+    userEmail: "daniel.kim@contoso.com",
+    environmentUrl: "https://contoso-finance.crm.dynamics.com",
+    targetTable: "Contact",
+    fileName: "contacts_finance.csv",
+    totalRows: 845,
+    successRows: 812,
+    failedRows: 33,
+    status: "COMPLETED_WITH_ERRORS",
+    errorReport: [
+      { row: 58, message: "Missing required field 'emailaddress1'." },
+      { row: 214, message: "Invalid phone number format." },
+    ],
+    createdAt: "2026-06-25T14:30:00.000Z",
+    completedAt: "2026-06-25T14:36:47.000Z",
+  },
+  {
+    id: "sample-import-leads",
+    tenantId: "sample-tenant",
+    userId: "sample-user-1",
+    userEmail: "priya.shah@contoso.com",
+    environmentUrl: "https://contoso-hr-sandbox.crm.dynamics.com",
+    targetTable: "Lead",
+    fileName: "leads_hr_sandbox.csv",
+    totalRows: 300,
+    successRows: 0,
+    failedRows: 300,
+    status: "FAILED",
+    errorReport: [{ row: 1, message: "Target table schema mismatch." }],
+    createdAt: "2026-07-01T11:15:00.000Z",
+    completedAt: "2026-07-01T11:15:42.000Z",
+  },
+  {
+    id: "sample-import-opportunities",
+    tenantId: "sample-tenant",
+    userId: "sample-user-3",
+    userEmail: "olga.novak@contoso.com",
+    environmentUrl: "https://contoso-production.crm.dynamics.com",
+    targetTable: "Opportunity",
+    fileName: "opportunities_july.csv",
+    totalRows: 560,
+    successRows: 410,
+    failedRows: 0,
+    status: "PROCESSING",
+    errorReport: null,
+    createdAt: "2026-07-10T16:45:00.000Z",
+    completedAt: null,
+  },
+  {
+    id: "sample-import-cases",
+    tenantId: "sample-tenant",
+    userId: "sample-user-2",
+    userEmail: "daniel.kim@contoso.com",
+    environmentUrl: "https://contoso-dev.crm.dynamics.com",
+    targetTable: "Incident",
+    fileName: "support_cases_backlog.csv",
+    totalRows: 90,
+    successRows: 0,
+    failedRows: 0,
+    status: "PENDING",
+    errorReport: null,
+    createdAt: "2026-07-11T08:05:00.000Z",
+    completedAt: null,
+  },
+];

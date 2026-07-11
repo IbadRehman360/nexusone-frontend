@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { useCatalogStats, useScanStatuses } from "@/src/hooks/data/usePurviewDataMap";
 import { useDlpAlerts } from "@/src/hooks/data/usePurviewDlp";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { SAMPLE_DLP_ALERTS } from "@/src/lib/sampleData/purview";
 import { useIntegrationsHealth } from "@/src/hooks/data/usePurviewIntegrations";
 import { useCostSummary, useVCoreUsage } from "@/src/hooks/data/usePurviewCost";
 import { formatCurrency, trendLabel, trendIcon, trendColor } from "./cost-billing/costFormat";
@@ -26,6 +28,7 @@ import { isSucceededStatus, scanStatusTextColor } from "@/src/lib/utils/scanStat
 import { ScanTrendChart } from "./overview/ScanTrendChart";
 import { DlpTrendChart } from "./overview/DlpTrendChart";
 import { DlpOverviewPanel } from "./overview/DlpOverviewPanel";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 
 interface SectionCardProps {
   title: string;
@@ -58,7 +61,10 @@ function SectionCard({ title, subtitle, viewHref, viewLabel = "View all", childr
 export default function Page() {
   const { catalogStats, isLoading: catalogLoading } = useCatalogStats();
   const { history, isLoading: historyLoading } = useScanStatuses();
-  const { alerts: dlpAlerts, isLoading: dlpLoading } = useDlpAlerts();
+  const { phase: dlpPhase, locked: dlpLocked } = useModulePhase("purview");
+  const { alerts: realDlpAlerts, isLoading: realDlpLoading } = useDlpAlerts();
+  const dlpAlerts = dlpLocked ? SAMPLE_DLP_ALERTS : realDlpAlerts;
+  const dlpLoading = dlpLocked ? false : realDlpLoading;
   const { health } = useIntegrationsHealth();
   const { summary } = useCostSummary();
   const { vCoreUsage } = useVCoreUsage();
@@ -115,6 +121,8 @@ export default function Page() {
         description="A single view of Microsoft Purview across data mapping, classification, DLP, governance, and cost."
         breadcrumbs={[{ label: "Purview", icon: ShieldCheck }]}
       />
+
+      {dlpPhase === "trialing" && <ModuleConnectBanner module="purview" />}
 
       <StatsCarousel
         cards={[

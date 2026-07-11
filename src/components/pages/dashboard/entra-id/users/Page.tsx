@@ -10,6 +10,9 @@ import { Badge } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { UsersRound, ShieldCheck, UserCheck, UserX, BadgeCheck } from "lucide-react";
 import { useEntraUsers } from "@/src/hooks/data/useEntraUsers";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
+import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
+import { sampleEntraUsers } from "@/src/lib/sampleData/entraId";
 import type { EntraUser } from "@/src/types/entraUsers";
 import { UserDetailSlideOver } from "./UserDetailSlideOver";
 import { formatDate } from "@/src/lib/utils/dateFormat";
@@ -18,7 +21,10 @@ const STATUS_ALL = { value: "all", label: "All Statuses" };
 const STATUS_OPTIONS = [STATUS_ALL, { value: "enabled", label: "Enabled" }, { value: "disabled", label: "Disabled" }];
 
 export default function Page() {
-  const { users, isLoading } = useEntraUsers();
+  const { phase, locked, lockedTooltip } = useModulePhase("entra");
+  const { users: realUsers, isLoading: realIsLoading } = useEntraUsers();
+  const users = locked ? sampleEntraUsers : realUsers;
+  const isLoading = locked ? false : realIsLoading;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -96,7 +102,11 @@ export default function Page() {
           { label: "Entra ID", href: "/dashboard/entra-id", icon: ShieldCheck },
           { label: "Users", icon: UsersRound },
         ]}
+        locked={locked}
+        lockedTooltip={lockedTooltip}
       />
+
+      {phase === "trialing" && <ModuleConnectBanner module="entra" />}
 
       <StatsCarousel
         cards={[
@@ -130,6 +140,8 @@ export default function Page() {
             title: "No users found",
             description: "Users will appear here once they exist in your Microsoft tenant.",
           }}
+          locked={locked}
+          lockedTooltip={lockedTooltip}
         />
       </DataTableMainHeader>
 

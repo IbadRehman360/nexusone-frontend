@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Check, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { Modal } from "@/src/components/ui/overlays/Modal";
+import { useAuth } from "@/src/hooks/useAuth";
 import { useBillingPlans, useInvalidateBilling } from "@/src/hooks/data/useBilling";
 import { redirectToCheckout, cancelModule, retryModuleInvoice } from "@/src/services/billing/billingApi";
 import { MODULE_BY_KEY } from "./moduleCatalog";
@@ -59,6 +60,8 @@ function PlanCard({
   modulesInTrial: string[];
   moduleBilling: Record<string, ModuleBillingInfo>;
 }) {
+  const { user } = useAuth();
+  const subscription = user?.subscription;
   const invalidate = useInvalidateBilling();
   const [busy, setBusy] = useState(false);
   const [retrying, setRetrying] = useState(false);
@@ -163,7 +166,9 @@ function PlanCard({
           </Button>
         ) : (
           <Button size="sm" onClick={buy} loading={busy} disabled={!isOwner} className="mt-auto">
-            Buy {plan.displayName}
+            {!subscription?.moduleTrialGrants?.includes(planModules[0])
+              ? `Start Trial — ${plan.displayName}`
+              : `Purchase ${plan.displayName}`}
           </Button>
         )}
       </div>

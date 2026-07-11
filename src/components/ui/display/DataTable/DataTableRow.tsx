@@ -11,6 +11,8 @@ interface DataTableRowProps<T> {
   selectable?: boolean;
   onClick?: (item: T) => void;
   index: number;
+  locked?: boolean;
+  lockedTooltip?: string;
 }
 
 export function DataTableRow<T>({
@@ -21,6 +23,8 @@ export function DataTableRow<T>({
   selectable,
   onClick,
   index,
+  locked,
+  lockedTooltip,
 }: DataTableRowProps<T>) {
   return (
     <tr
@@ -49,6 +53,7 @@ export function DataTableRow<T>({
       {/* Data cells */}
       {columns.map((col) => {
         const value = col.accessor ? col.accessor(item) : (item as Record<string, unknown>)[col.key];
+        const isLockedActions = locked && col.key === 'actions';
 
         return (
           <td
@@ -60,8 +65,18 @@ export function DataTableRow<T>({
               col.hideOnMobile       && 'hidden md:table-cell',
               col.className
             )}
+            title={isLockedActions ? lockedTooltip : undefined}
+            onClick={isLockedActions ? (e) => e.stopPropagation() : undefined}
           >
-            {col.render ? col.render(value, item) : (value as React.ReactNode)}
+            {isLockedActions ? (
+              <div aria-disabled="true" className="opacity-50 pointer-events-none cursor-not-allowed inline-block">
+                {col.render ? col.render(value, item) : (value as React.ReactNode)}
+              </div>
+            ) : col.render ? (
+              col.render(value, item)
+            ) : (
+              (value as React.ReactNode)
+            )}
           </td>
         );
       })}

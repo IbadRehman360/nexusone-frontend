@@ -15,9 +15,12 @@ interface PageHeaderProps {
   breadcrumbs?: BreadcrumbItem[];
   envBadge?: string;
   action?: React.ReactNode;
+  /** When true, `action` is rendered disabled with a tooltip instead of interactive. No subscription/module knowledge lives here — callers compute this (e.g. via `useModulePhase`). */
+  locked?: boolean;
+  lockedTooltip?: string;
 }
 
-export function PageHeader({ title, description, breadcrumbs, envBadge, action }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumbs, envBadge, action, locked, lockedTooltip }: PageHeaderProps) {
   return (
     <div>
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
@@ -35,7 +38,17 @@ export function PageHeader({ title, description, breadcrumbs, envBadge, action }
             <p className="mt-1.5 text-sm text-[rgb(var(--foreground)/0.65)]">{description}</p>
           )}
         </div>
-        {action && <div className="shrink-0">{action}</div>}
+        {action && (
+          <div className="shrink-0" title={locked ? lockedTooltip : undefined}>
+            {locked ? (
+              <div aria-disabled="true" className="opacity-50 pointer-events-none cursor-not-allowed">
+                {action}
+              </div>
+            ) : (
+              action
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
