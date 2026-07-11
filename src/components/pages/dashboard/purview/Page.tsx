@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Cloud,
 } from "lucide-react";
+import { Loader } from "@/src/components/ui/feedback/Loader";
 import { useCatalogStats, useScanStatuses } from "@/src/hooks/data/usePurviewDataMap";
 import { useDlpAlerts } from "@/src/hooks/data/usePurviewDlp";
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
@@ -218,7 +219,7 @@ export default function Page() {
 
         <SectionCard title="Cost & Usage" viewHref="/dashboard/purview/cost-billing">
           {!summary ? (
-            <p className="text-xs text-muted-foreground">Loading cost data…</p>
+            <Loader size="sm" text="Loading cost data…" className="py-4" />
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg border border-(--custom-table-border) bg-(--custom-table-bg) p-3">

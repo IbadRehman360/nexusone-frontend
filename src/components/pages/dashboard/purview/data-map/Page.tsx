@@ -9,7 +9,8 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import StatsCard from "@/src/components/ui/display/StatsCard";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { cn } from "@/src/lib/utils/cn";
-import { Database, CheckCircle2, XCircle, Clock, Map as MapIcon, Table as TableIcon, ShieldCheck, Waypoints, Loader2 } from "lucide-react";
+import { Database, CheckCircle2, XCircle, Clock, Map as MapIcon, Table as TableIcon, ShieldCheck, Waypoints } from "lucide-react";
+import { Loader } from "@/src/components/ui/feedback/Loader";
 import {
   useCatalogConnectors,
   useCatalogStats,
@@ -134,9 +135,8 @@ function MapView({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2 text-xs text-muted-foreground">
-        <Loader2 size={18} className="animate-spin text-info-400" />
-        Loading data map…
+      <div className="flex items-center justify-center h-full">
+        <Loader size="sm" text="Loading data map…" />
       </div>
     );
   }
