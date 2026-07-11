@@ -56,6 +56,11 @@ export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) 
               ? `Connect your Microsoft tenant to see real ${label} data and unlock actions.`
               : `Purchase or start a trial of ${label} to see real data and unlock actions.`}
           </p>
+          {phase === "trialing" && (
+            <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+              You&apos;ll be redirected to Microsoft to sign in as your Global Admin and approve access — a one-time step, about 30 seconds.
+            </p>
+          )}
         </div>
       </div>
       {phase === "trialing" ? (
