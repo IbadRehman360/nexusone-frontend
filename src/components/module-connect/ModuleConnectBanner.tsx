@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { PlugZap } from "lucide-react";
+import { PlugZap, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { initiateModuleConsent, type ModuleConsentService } from "@/src/services/module-consent/moduleConsentApi";
 import type { SubscriptionModule } from "@/src/components/auth/ModuleGuard";
 import { MODULE_LABELS } from "@/src/lib/constants/modules";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 
 const MODULE_TO_CONSENT_SERVICE: Record<SubscriptionModule, ModuleConsentService> = {
   entra: "ENTRA_ID",
@@ -15,14 +17,20 @@ const MODULE_TO_CONSENT_SERVICE: Record<SubscriptionModule, ModuleConsentService
 };
 
 /**
- * Shown on a module's pages while it's `trialing` (purchased, not yet
- * connected) — the only real UI consumer of `moduleConsentApi.ts`, which has
- * existed fully wired since the original consent-flow work but was never
- * called from anywhere until this.
+ * Self-contained sample-data banner — reads its own phase via
+ * `useModulePhase` rather than being told by the caller, so every page just
+ * renders `<ModuleConnectBanner module="x" />` unconditionally and the right
+ * thing happens: nothing when connected, a Connect prompt when trialing
+ * (purchased, not yet connected — the only real UI consumer of
+ * `moduleConsentApi.ts`), a plain sample-data notice with a link to Billing
+ * when locked (look-around window, never purchased — nothing to Connect yet).
  */
 export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) {
+  const { phase } = useModulePhase(module);
   const [connecting, setConnecting] = useState(false);
   const label = MODULE_LABELS[module] ?? module;
+
+  if (phase === "connected") return null;
 
   const handleConnect = async () => {
     setConnecting(true);
@@ -39,18 +47,28 @@ export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) 
     <div className="flex items-center justify-between gap-4 bg-(--custom-table-bg) border border-(--custom-table-border) rounded-xl p-4">
       <div className="flex items-center gap-3 min-w-0">
         <div className="shrink-0 w-9 h-9 rounded-lg bg-info/10 border border-info/20 flex items-center justify-center text-info-400">
-          <PlugZap size={18} />
+          {phase === "trialing" ? <PlugZap size={18} /> : <Sparkles size={18} />}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">You're viewing sample data</p>
+          <p className="text-sm font-semibold text-foreground">You&apos;re viewing sample data</p>
           <p className="text-xs text-muted-foreground">
-            Connect your Microsoft tenant to see real {label} data and unlock actions.
+            {phase === "trialing"
+              ? `Connect your Microsoft tenant to see real ${label} data and unlock actions.`
+              : `Purchase or start a trial of ${label} to see real data and unlock actions.`}
           </p>
         </div>
       </div>
-      <Button size="sm" onClick={handleConnect} loading={connecting} className="shrink-0">
-        Connect
-      </Button>
+      {phase === "trialing" ? (
+        <Button size="sm" onClick={handleConnect} loading={connecting} className="shrink-0">
+          Connect
+        </Button>
+      ) : (
+        <Link href="/dashboard/settings/billing">
+          <Button size="sm" variant="outline" className="shrink-0">
+            View Plans
+          </Button>
+        </Link>
+      )}
     </div>
   );
 }

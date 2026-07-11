@@ -32,7 +32,7 @@ export default function Page() {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  const { phase, locked, lockedTooltip } = useModulePhase("purview");
+  const { locked, lockedTooltip } = useModulePhase("purview");
   const { alerts: realAlerts, isLoading: realLoading, error: realError } = useDlpAlerts();
   const alerts = locked ? SAMPLE_DLP_ALERTS : realAlerts;
   const isLoading = locked ? false : realLoading;
@@ -155,7 +155,7 @@ export default function Page() {
         lockedTooltip={lockedTooltip}
       />
 
-      {phase === "trialing" && <ModuleConnectBanner module="purview" />}
+      <ModuleConnectBanner module="purview" />
 
       <StatsCarousel
         cards={[

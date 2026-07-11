@@ -61,7 +61,7 @@ function SectionCard({ title, subtitle, viewHref, viewLabel = "View all", childr
 export default function Page() {
   const { catalogStats, isLoading: catalogLoading } = useCatalogStats();
   const { history, isLoading: historyLoading } = useScanStatuses();
-  const { phase: dlpPhase, locked: dlpLocked } = useModulePhase("purview");
+  const { locked: dlpLocked } = useModulePhase("purview");
   const { alerts: realDlpAlerts, isLoading: realDlpLoading } = useDlpAlerts();
   const dlpAlerts = dlpLocked ? SAMPLE_DLP_ALERTS : realDlpAlerts;
   const dlpLoading = dlpLocked ? false : realDlpLoading;
@@ -122,7 +122,7 @@ export default function Page() {
         breadcrumbs={[{ label: "Purview", icon: ShieldCheck }]}
       />
 
-      {dlpPhase === "trialing" && <ModuleConnectBanner module="purview" />}
+      <ModuleConnectBanner module="purview" />
 
       <StatsCarousel
         cards={[

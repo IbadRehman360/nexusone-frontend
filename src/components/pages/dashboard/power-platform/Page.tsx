@@ -17,7 +17,7 @@ import {
 import { Globe, LayoutGrid, Layers, ShieldCheck, Cloud } from "lucide-react";
 
 export default function Page() {
-  const { phase, locked, lockedTooltip } = useModulePhase("pp");
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const { environments: realEnvironments, isLoading: envLoading } = useEnvironments();
   const { groups: realGroups, isLoading: groupsLoading } = useEnvironmentGroups();
   const { summary: realSummary, isLoading: summaryLoading } = useResourceSummary();
@@ -38,7 +38,7 @@ export default function Page() {
         lockedTooltip={lockedTooltip}
       />
 
-      {phase === "trialing" && <ModuleConnectBanner module="pp" />}
+      <ModuleConnectBanner module="pp" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard title="Environments" value={environments.length} subtitle="Total" icon={Globe} color="blue" isLoading={!locked && envLoading} href="/dashboard/power-platform/environments" />

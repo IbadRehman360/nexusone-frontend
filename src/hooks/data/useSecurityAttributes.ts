@@ -11,7 +11,15 @@ import {
   bulkCsaAttribute,
 } from "@/src/services/entra-id/securityAttributesApi";
 import { queryKeys } from "@/src/lib/query/queryKeys";
-import type { AssignAttributePayload, BulkAttributePayload, CreateAttributePayload } from "@/src/types/securityAttributes";
+import type { AssignAttributePayload, BulkAttributePayload, CreateAttributePayload, CsaCategory, CsaUser, CsaServicePrincipal } from "@/src/types/securityAttributes";
+
+// Stable empty-array fallbacks — `query.data ?? []` allocates a fresh array
+// every render while `data` is undefined (loading/error), which breaks any
+// consumer that depends on reference equality (e.g. security-attributes'
+// Page.tsx re-expands categories whenever `categories` "changes").
+const EMPTY_CATEGORIES: CsaCategory[] = [];
+const EMPTY_USERS: CsaUser[] = [];
+const EMPTY_SERVICE_PRINCIPALS: CsaServicePrincipal[] = [];
 
 export function useCsaAttributes() {
   const query = useQuery({
@@ -20,7 +28,7 @@ export function useCsaAttributes() {
     staleTime: 300_000,
   });
 
-  return { categories: query.data ?? [], isLoading: query.isLoading, error: query.error as Error | null };
+  return { categories: query.data ?? EMPTY_CATEGORIES, isLoading: query.isLoading, error: query.error as Error | null };
 }
 
 export function useCsaUsers() {
@@ -30,7 +38,7 @@ export function useCsaUsers() {
     staleTime: 120_000,
   });
 
-  return { users: query.data ?? [], isLoading: query.isLoading, error: query.error as Error | null };
+  return { users: query.data ?? EMPTY_USERS, isLoading: query.isLoading, error: query.error as Error | null };
 }
 
 export function useCsaServicePrincipals() {
@@ -40,7 +48,7 @@ export function useCsaServicePrincipals() {
     staleTime: 120_000,
   });
 
-  return { servicePrincipals: query.data ?? [], isLoading: query.isLoading, error: query.error as Error | null };
+  return { servicePrincipals: query.data ?? EMPTY_SERVICE_PRINCIPALS, isLoading: query.isLoading, error: query.error as Error | null };
 }
 
 export function useCsaMutations() {

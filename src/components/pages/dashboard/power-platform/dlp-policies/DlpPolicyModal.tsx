@@ -52,6 +52,7 @@ export function DlpPolicyModal({ isOpen, onClose, policy, onSaved }: DlpPolicyMo
 
   const [connectors, setConnectors] = useState<PpConnectorCatalogItem[]>([]);
   const [connectorsLoading, setConnectorsLoading] = useState(false);
+  const [connectorsError, setConnectorsError] = useState(false);
   const [connectorSearch, setConnectorSearch] = useState("");
   const [overrides, setOverrides] = useState<Map<string, DlpConnectorClassification>>(new Map());
 
@@ -70,9 +71,10 @@ export function DlpPolicyModal({ isOpen, onClose, policy, onSaved }: DlpPolicyMo
 
     let cancelled = false;
     setConnectorsLoading(true);
+    setConnectorsError(false);
     listPpConnectors()
       .then((c) => { if (!cancelled) setConnectors(c); })
-      .catch(() => { if (!cancelled) setConnectors([]); })
+      .catch(() => { if (!cancelled) { setConnectors([]); setConnectorsError(true); } })
       .finally(() => { if (!cancelled) setConnectorsLoading(false); });
     return () => { cancelled = true; };
   }, [isOpen, policy]);
@@ -227,6 +229,8 @@ export function DlpPolicyModal({ isOpen, onClose, policy, onSaved }: DlpPolicyMo
 
         {connectorsLoading ? (
           <p className="text-xs text-muted-foreground">Loading connectors…</p>
+        ) : connectorsError ? (
+          <p className="text-xs text-error-400">Couldn&apos;t load connectors — connect Power Platform and try again.</p>
         ) : (
           <div className="max-h-72 overflow-y-auto divide-y divide-border/30 border border-(--custom-table-border) rounded-lg">
             {filteredConnectors.map((c) => {

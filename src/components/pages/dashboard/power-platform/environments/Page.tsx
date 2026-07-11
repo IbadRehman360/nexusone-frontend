@@ -57,7 +57,7 @@ function StatusText({ state }: { state?: string }) {
 }
 
 export default function Page() {
-  const { phase, locked, lockedTooltip } = useModulePhase("pp");
+  const { locked, lockedTooltip } = useModulePhase("pp");
   const { environments: realEnvironments, isLoading, error, refetch } = useEnvironments();
   const environments = locked ? SAMPLE_PP_ENVIRONMENTS : realEnvironments;
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -103,7 +103,7 @@ export default function Page() {
         lockedTooltip={lockedTooltip}
       />
 
-      {phase === "trialing" && <ModuleConnectBanner module="pp" />}
+      <ModuleConnectBanner module="pp" />
 
       <DataTableMainHeader title={`Environments (${environments.length})`}>
         <DataTable<PowerPlatformEnvironment>

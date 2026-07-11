@@ -21,7 +21,7 @@ const STATUS_ALL = { value: "all", label: "All Statuses" };
 const STATUS_OPTIONS = [STATUS_ALL, { value: "enabled", label: "Enabled" }, { value: "disabled", label: "Disabled" }];
 
 export default function Page() {
-  const { phase, locked, lockedTooltip } = useModulePhase("entra");
+  const { locked, lockedTooltip } = useModulePhase("entra");
   const { users: realUsers, isLoading: realIsLoading } = useEntraUsers();
   const users = locked ? sampleEntraUsers : realUsers;
   const isLoading = locked ? false : realIsLoading;
@@ -106,7 +106,7 @@ export default function Page() {
         lockedTooltip={lockedTooltip}
       />
 
-      {phase === "trialing" && <ModuleConnectBanner module="entra" />}
+      <ModuleConnectBanner module="entra" />
 
       <StatsCarousel
         cards={[

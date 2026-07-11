@@ -12,7 +12,7 @@ import { sampleEntraUsers, sampleGroups, sampleEnterpriseApps, sampleConditional
 import { UsersRound, Users, AppWindow, ShieldCheck } from "lucide-react";
 
 export default function Page() {
-  const { phase, locked, lockedTooltip } = useModulePhase("entra");
+  const { locked, lockedTooltip } = useModulePhase("entra");
   const { users: realUsers, isLoading: usersLoading } = useEntraUsers();
   const { groups: realGroups, isLoading: groupsLoading } = useGroups();
   const { apps: realApps, isLoading: appsLoading } = useEnterpriseApps();
@@ -33,7 +33,7 @@ export default function Page() {
         lockedTooltip={lockedTooltip}
       />
 
-      {phase === "trialing" && <ModuleConnectBanner module="entra" />}
+      <ModuleConnectBanner module="entra" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard title="Users" value={users.length} subtitle="Total" icon={UsersRound} color="blue" isLoading={!locked && usersLoading} href="/dashboard/entra-id/users" />

@@ -22,7 +22,7 @@ import {
 import { HomeHeader } from "./HomeHeader";
 
 export default function Page() {
-  const { phase, locked } = useModulePhase("pp");
+  const { locked } = useModulePhase("pp");
   const { environments: realEnvironments, isLoading: envLoading } = useEnvironments();
   const { groups: realGroups, isLoading: groupsLoading } = useEnvironmentGroups();
   const { summary: realSummary, isLoading: summaryLoading } = useResourceSummary();
@@ -97,7 +97,7 @@ export default function Page() {
   return (
     <div className="space-y-4">
       <HomeHeader />
-      {phase === "trialing" && <ModuleConnectBanner module="pp" />}
+      <ModuleConnectBanner module="pp" />
       <StatsCarousel cards={cards} />
     </div>
   );
