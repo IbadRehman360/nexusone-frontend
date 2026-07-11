@@ -21,7 +21,7 @@ export interface BadgeProps {
 const CHIP = "bg-(--custom-table-bg) border-(--custom-table-border)";
 
 const variantStyles: Record<BadgeVariant, string> = {
-  success: `${CHIP} text-success-700 dark:text-success-400`,
+  success: `${CHIP} text-success-600 dark:text-success-400`,
   warning: `${CHIP} text-warning-800 dark:text-warning-400`,
   error: `${CHIP} text-error-700 dark:text-error-400`,
   info: `${CHIP} text-info-300 dark:text-info-400`,
