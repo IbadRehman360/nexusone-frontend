@@ -19,21 +19,30 @@ function isTenantHeaderExempt(url: string | undefined): boolean {
   return TENANT_HEADER_EXEMPT.has(url.split("?")[0]);
 }
 
-// Normalise Axios errors into plain Error objects with a `.status` property
-// so callers don't need to unwrap AxiosError themselves.
-function normalizeError(error: AxiosError): Error & { status?: number; data?: unknown } {
+// Normalise Axios errors into plain Error objects carrying `.status`,
+// `.errorCode` (the backend's stable code) and `.correlationId` (the reference
+// the user quotes to support) so callers/boundaries can route on them without
+// unwrapping AxiosError themselves.
+function normalizeError(
+  error: AxiosError,
+): Error & { status?: number; errorCode?: string; correlationId?: string; data?: unknown } {
   if (error.response) {
     const status = error.response.status;
     const data = error.response.data as Record<string, unknown>;
+    const headers = error.response.headers as Record<string, string> | undefined;
     const message =
       (data?.message as string) ??
       (data?.error as string) ??
       (typeof data === "string" ? data : null) ??
       `API Error ${status}`;
-    return Object.assign(new Error(message), { status, data });
+    const errorCode = typeof data?.errorCode === "string" ? data.errorCode : undefined;
+    const correlationId =
+      (typeof data?.correlationId === "string" ? data.correlationId : undefined) ??
+      headers?.["x-correlation-id"];
+    return Object.assign(new Error(message), { status, data, errorCode, correlationId });
   }
   if (error.request) {
-    return new Error("Network error — no response from server");
+    return Object.assign(new Error("Network error — no response from server"), { status: 0 });
   }
   return error;
 }

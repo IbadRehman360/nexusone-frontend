@@ -45,7 +45,13 @@ function exportToCsv(rows: ActivityLog[]) {
 
 export default function Page() {
   const [rangeDays, setRangeDays] = useState("7");
-  const startDate = rangeDays ? subtractDays(Number(rangeDays)) : undefined;
+  // Memoize so startDate only changes when the range does — otherwise it's
+  // recomputed to the current millisecond every render, which churns the React
+  // Query key and keeps the query stuck in a permanent loading/refetch loop.
+  const startDate = useMemo(
+    () => (rangeDays ? subtractDays(Number(rangeDays)) : undefined),
+    [rangeDays],
+  );
   const { activities, isLoading, isFetching, refetch } = useActivityLog(startDate);
 
   const [category, setCategory] = useState("");
