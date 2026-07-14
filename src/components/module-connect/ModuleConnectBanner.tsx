@@ -5,16 +5,10 @@ import { toast } from "sonner";
 import { PlugZap, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/src/components/ui/inputs/Button";
-import { initiateModuleConsent, type ModuleConsentService } from "@/src/services/module-consent/moduleConsentApi";
+import { initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
 import type { SubscriptionModule } from "@/src/components/auth/ModuleGuard";
-import { MODULE_LABELS } from "@/src/lib/constants/modules";
+import { MODULE_LABELS, MODULE_TO_CONSENT_SERVICE } from "@/src/lib/constants/modules";
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
-
-const MODULE_TO_CONSENT_SERVICE: Record<SubscriptionModule, ModuleConsentService> = {
-  entra: "ENTRA_ID",
-  pp: "POWER_PLATFORM",
-  purview: "PURVIEW",
-};
 
 /**
  * Self-contained sample-data banner — reads its own phase via

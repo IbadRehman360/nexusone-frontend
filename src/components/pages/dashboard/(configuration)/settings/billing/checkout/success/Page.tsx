@@ -4,6 +4,9 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Loader2, AlertCircle, Mail } from "lucide-react";
 import { getBillingState } from "@/src/services/billing/billingApi";
+import { getMe } from "@/src/services/auth";
+import { initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
+import { MODULE_TO_CONSENT_SERVICE, nextUnconnectedModule } from "@/src/lib/constants/modules";
 import { cn } from "@/src/lib/utils/cn";
 
 const POLL_INTERVAL_MS = 1_000;
@@ -63,6 +66,15 @@ function CheckoutSuccessContent() {
   const pollCount = useRef(0);
   const startTime = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // getBillingState() can occasionally take longer than the 1s poll
+  // interval (e.g. while a burst of Stripe webhooks is being processed) —
+  // without this, a slow response lets the next interval tick start a
+  // second overlapping poll() before the first finishes, and both can
+  // independently detect success and each fire their own Connect redirect.
+  const pollInFlight = useRef(false);
+  // Belt-and-braces: even if overlap somehow still happens, this ensures
+  // the post-success Connect/redirect logic itself only ever runs once.
+  const postSuccessTriggered = useRef(false);
 
   const mailto = `mailto:billing-help@nexusone.app?subject=${encodeURIComponent(
     "Checkout sync stuck",
@@ -78,33 +90,61 @@ function CheckoutSuccessContent() {
   }, []);
 
   const poll = useCallback(async () => {
-    pollCount.current += 1;
-    const secs = Math.floor((Date.now() - startTime.current) / 1000);
-    setElapsed(secs);
-    setStepStates(stepsForElapsed(secs));
-
-    if (secs >= ESCALATION_AT) {
-      stopPolling();
-      setPhase("escalate");
-      return;
-    }
-    if (secs >= DELAY_BANNER_AT) setPhase("delayed");
-
-    if (pollCount.current >= MAX_POLLS) {
-      stopPolling();
-      setPhase("failed");
-      return;
-    }
-
+    if (pollInFlight.current) return; // previous tick still in flight — skip, don't overlap
+    pollInFlight.current = true;
     try {
+      pollCount.current += 1;
+      const secs = Math.floor((Date.now() - startTime.current) / 1000);
+      setElapsed(secs);
+      setStepStates(stepsForElapsed(secs));
+
+      if (secs >= ESCALATION_AT) {
+        stopPolling();
+        setPhase("escalate");
+        return;
+      }
+      if (secs >= DELAY_BANNER_AT) setPhase("delayed");
+
+      if (pollCount.current >= MAX_POLLS) {
+        stopPolling();
+        setPhase("failed");
+        return;
+      }
+
       const state = await getBillingState();
       if (state.stripeStatus === "trialing" || state.stripeStatus === "active" || state.nexusStatus === "ACTIVE" || state.nexusStatus === "TRIAL") {
         stopPolling();
         setPhase("success");
-        setTimeout(() => router.replace("/dashboard/settings/billing"), 1_500);
+        if (postSuccessTriggered.current) return; // already handled by an earlier tick
+        postSuccessTriggered.current = true;
+        // Once billing is confirmed synced, walk straight into Microsoft
+        // consent for whatever was just bought instead of dropping the
+        // customer on the billing page to go find a Connect button
+        // themselves — same auto-chain the module-consent-callback page
+        // continues after each consent completes.
+        setTimeout(async () => {
+          try {
+            const user = await getMe();
+            const next = nextUnconnectedModule(
+              user.subscription?.paidModules ?? [],
+              user.subscription?.connectedModules ?? [],
+            );
+            if (next) {
+              const { authorizationUrl } = await initiateModuleConsent(MODULE_TO_CONSENT_SERVICE[next]);
+              window.location.href = authorizationUrl;
+              return;
+            }
+          } catch {
+            // Never block the customer here — fall through to the normal
+            // billing redirect if we can't tell what's left to connect.
+          }
+          router.replace("/dashboard/settings/billing");
+        }, 1_500);
       }
     } catch {
       // Transient fetch errors are expected during provisioning — keep polling
+    } finally {
+      pollInFlight.current = false;
     }
   }, [stopPolling, router]);
 
