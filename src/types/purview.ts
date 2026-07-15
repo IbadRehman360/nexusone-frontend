@@ -142,16 +142,6 @@ export interface SensitivityLabel {
   subLabels: SensitivityLabel[];
 }
 
-export interface GovernanceActivity {
-  operationName: string;
-  callerIpAddress: string | null;
-  identity: string;
-  resultType: string;
-  resourceId: string;
-  timestamp: string;
-  category: string;
-}
-
 export interface DlpDetectedSit {
   name: string;
   count: number;
@@ -183,40 +173,6 @@ export interface DlpAlert {
   location: string;
   portalUrl?: string | null;
   detail?: DlpAlertDetail;
-}
-
-export interface CostDayPoint {
-  date: string;
-  cost: number;
-  currency: string;
-}
-
-export interface CostSummary {
-  currentMonthCost: number;
-  lastMonthCost: number;
-  currency: string;
-  trendPercent: number;
-  dailyTrend: CostDayPoint[];
-}
-
-export interface VCoreUsage {
-  vCoreHours: number;
-  cost: number;
-  currency: string;
-}
-
-export interface PurviewMetrics {
-  dataMapStorageSizeBytes: number;
-  dataMapCapacityUnits: number;
-  scanCompleted: number;
-  scanFailed: number;
-  scanCancelled: number;
-  scanTimeTakenMs: number;
-}
-
-export interface ScanHistoryFilters {
-  status?: string;
-  dataSource?: string;
 }
 
 export interface IntegrationService {

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Loader2, AlertCircle, Mail } from "lucide-react";
 import { getBillingState } from "@/src/services/billing/billingApi";
 import { getMe } from "@/src/services/auth";
-import { initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
+import { initiateModuleConsent, getModuleConnectionStatus } from "@/src/services/module-consent/moduleConsentApi";
 import { MODULE_TO_CONSENT_SERVICE, nextUnconnectedModule } from "@/src/lib/constants/modules";
 import { cn } from "@/src/lib/utils/cn";
 
@@ -129,6 +129,25 @@ function CheckoutSuccessContent() {
               user.subscription?.paidModules ?? [],
               user.subscription?.connectedModules ?? [],
             );
+            // Purview can't auto-connect: it needs the customer's own
+            // account name + Log Analytics workspace ID first, plus two
+            // manual role grants — the multi-step wizard at
+            // /dashboard/purview/connect. Check consentCompleted (objectId
+            // actually set), not just `status` — PROVISIONING alone doesn't
+            // distinguish "consent already done, needs role grants" from
+            // "connect form was submitted but Microsoft consent never
+            // finished" (e.g. an abandoned prior attempt).
+            if (next === "purview") {
+              const purviewStatus = await getModuleConnectionStatus("PURVIEW");
+              let resumeUrl = "/dashboard/purview/connect";
+              if (purviewStatus.consentCompleted) {
+                resumeUrl = purviewStatus.detailsSubmitted
+                  ? "/dashboard/purview/connect?step=log-analytics-role"
+                  : "/dashboard/purview/connect?step=connection-details";
+              }
+              router.replace(resumeUrl);
+              return;
+            }
             if (next) {
               const { authorizationUrl } = await initiateModuleConsent(MODULE_TO_CONSENT_SERVICE[next]);
               window.location.href = authorizationUrl;

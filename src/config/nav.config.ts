@@ -16,7 +16,6 @@ import {
   SquaresFour,
   Tag,
   BookOpen,
-  Buildings,
   ClipboardText,
   MapTrifold,
   Funnel,
@@ -220,18 +219,10 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    title: "GOVERNANCE",
-    world: 'purview',
-    items: [
-      { label: "Data Governance", href: "/dashboard/purview/governance", icon: Buildings },
-    ],
-  },
-  {
     title: "PROTECTION",
     world: 'purview',
     items: [
-      { label: "DLP",           href: "/dashboard/purview/dlp",          icon: ShieldWarning },
-      { label: "Cost & Billing",href: "/dashboard/purview/cost-billing", icon: CreditCard },
+      { label: "DLP", href: "/dashboard/purview/dlp", icon: ShieldWarning },
     ],
   },
   {

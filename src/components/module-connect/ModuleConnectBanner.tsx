@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PlugZap, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
 import type { SubscriptionModule } from "@/src/components/auth/ModuleGuard";
@@ -20,6 +21,7 @@ import { useModulePhase } from "@/src/hooks/data/useModulePhase";
  * when locked (look-around window, never purchased — nothing to Connect yet).
  */
 export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) {
+  const router = useRouter();
   const { phase } = useModulePhase(module);
   const [connecting, setConnecting] = useState(false);
   const label = MODULE_LABELS[module] ?? module;
@@ -27,6 +29,15 @@ export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) 
   if (phase === "connected") return null;
 
   const handleConnect = async () => {
+    // Purview's connect flow is a multi-step wizard (account details, then
+    // two separate manual role grants, then verification) — enough steps
+    // that it gets its own page rather than a modal. Every other module
+    // redirects straight to Microsoft consent since there's nothing else to
+    // collect first.
+    if (module === "purview") {
+      router.push("/dashboard/purview/connect");
+      return;
+    }
     setConnecting(true);
     try {
       const { authorizationUrl } = await initiateModuleConsent(MODULE_TO_CONSENT_SERVICE[module]);
@@ -52,7 +63,9 @@ export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) 
           </p>
           {phase === "trialing" && (
             <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-              You&apos;ll be redirected to Microsoft to sign in as your Global Admin and approve access — a one-time step, about 30 seconds.
+              {module === "purview"
+                ? "A short setup wizard walks you through connecting your existing Purview account."
+                : "You'll be redirected to Microsoft to sign in as your Global Admin and approve access — a one-time step, about 30 seconds."}
             </p>
           )}
         </div>

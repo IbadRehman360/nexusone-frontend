@@ -15,17 +15,33 @@ export default function Page() {
   const { health, isLoading } = useIntegrationsHealth();
   const [search, setSearch] = useState("");
 
+  const visibleServices = useMemo(() => health?.services ?? [], [health]);
+
+  const connectedCount = useMemo(
+    () => visibleServices.filter((s) => s.status === "healthy").length,
+    [visibleServices],
+  );
+  const notConfiguredCount = useMemo(
+    () => visibleServices.filter((s) => s.status === "unconfigured").length,
+    [visibleServices],
+  );
+  const avgLatencyMs = useMemo(() => {
+    const latencies = visibleServices
+      .filter((s) => s.status === "healthy" && s.latencyMs != null)
+      .map((s) => s.latencyMs as number);
+    return latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : null;
+  }, [visibleServices]);
+
   const unhealthyCount = useMemo(
-    () => health?.services.filter((s) => s.status === "unavailable" || s.status === "degraded").length ?? 0,
-    [health],
+    () => visibleServices.filter((s) => s.status === "unavailable" || s.status === "degraded").length,
+    [visibleServices],
   );
 
   const filteredServices = useMemo(() => {
-    const services = health?.services ?? [];
-    if (!search.trim()) return services;
+    if (!search.trim()) return visibleServices;
     const query = search.trim().toLowerCase();
-    return services.filter((s) => s.displayName.toLowerCase().includes(query) || s.type.toLowerCase().includes(query));
-  }, [health, search]);
+    return visibleServices.filter((s) => s.displayName.toLowerCase().includes(query) || s.type.toLowerCase().includes(query));
+  }, [visibleServices, search]);
 
   const checkedAtLabel = health ? new Date(health.checkedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : null;
 
@@ -76,21 +92,21 @@ export default function Page() {
         cards={[
           {
             title: "Connected",
-            value: health ? `${health.connectedCount} / ${health.totalCount}` : "—",
+            value: health ? `${connectedCount} / ${visibleServices.length}` : "—",
             icon: Plug,
             color: "blue",
             isLoading,
           },
           {
             title: "Avg Latency",
-            value: health?.avgLatencyMs != null ? `${health.avgLatencyMs} ms` : "—",
+            value: avgLatencyMs != null ? `${avgLatencyMs} ms` : "—",
             icon: ShieldQuestion,
             color: "purple",
             isLoading,
           },
           {
             title: "Not Configured",
-            value: health ? health.notConfiguredCount : "—",
+            value: health ? notConfiguredCount : "—",
             icon: CircleSlash,
             color: "neutral",
             isLoading,
@@ -106,7 +122,7 @@ export default function Page() {
       />
 
       <DataTableMainHeader
-        title={health ? `Connected integrations · ${health.connectedCount} of ${health.totalCount} active` : "Connected integrations"}
+        title={health ? `Connected integrations · ${connectedCount} of ${visibleServices.length} active` : "Connected integrations"}
         searchValue={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search integrations…"

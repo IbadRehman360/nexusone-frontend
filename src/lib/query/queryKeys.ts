@@ -68,17 +68,8 @@ export const queryKeys = {
   purviewSensitivity: {
     labels: () => ['purview-sensitivity-labels'] as const,
   },
-  purviewGovernance: {
-    activity: () => ['purview-governance-activity'] as const,
-  },
   purviewDlp: {
     alerts: () => ['purview-dlp-alerts'] as const,
-  },
-  purviewCost: {
-    summary: (month?: string) => ['purview-cost-summary', month ?? 'current'] as const,
-    metrics: () => ['purview-cost-metrics'] as const,
-    vCoreUsage: (month?: string) => ['purview-cost-vcore-usage', month ?? 'current'] as const,
-    scanHistory: (status?: string, dataSource?: string) => ['purview-cost-scan-history', status ?? 'all', dataSource ?? 'all'] as const,
   },
   purviewIntegrations: {
     health: () => ['purview-integrations-health'] as const,

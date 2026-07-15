@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Tag, Plus, Layers, Users, AppWindow, ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/src/components/ui/navigation/PageHeader";
@@ -796,11 +796,10 @@ export default function Page() {
   }, [categories, search]);
 
   // Default to fully expanded whenever the catalog loads, or auto-expand categories matching a search.
-  const [expandReset, setExpandReset] = useState<{ categories: typeof categories; search: string } | null>(null);
-  if (expandReset?.categories !== categories || expandReset?.search !== search) {
-    setExpandReset({ categories, search });
+  useEffect(() => {
     setExpandedCategories(new Set(filteredCategories.map((cat) => cat.id)));
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories, search]);
 
   const attributeRows = useMemo(() => visibleAttributeRows(filteredCategories, expandedCategories), [filteredCategories, expandedCategories]);
 

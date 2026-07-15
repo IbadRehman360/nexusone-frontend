@@ -14,14 +14,11 @@ import {
   CheckCircle2,
   Cloud,
 } from "lucide-react";
-import { Loader } from "@/src/components/ui/feedback/Loader";
 import { useCatalogStats, useScanStatuses } from "@/src/hooks/data/usePurviewDataMap";
 import { useDlpAlerts } from "@/src/hooks/data/usePurviewDlp";
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { SAMPLE_DLP_ALERTS } from "@/src/lib/sampleData/purview";
 import { useIntegrationsHealth } from "@/src/hooks/data/usePurviewIntegrations";
-import { useCostSummary, useVCoreUsage } from "@/src/hooks/data/usePurviewCost";
-import { formatCurrency, trendLabel, trendIcon, trendColor } from "./cost-billing/costFormat";
 import { formatDateTime as formatShortDateTime } from "@/src/lib/utils/dateFormat";
 import { StatusCell } from "./integrations/integrationsShared";
 import { isSucceededStatus, scanStatusTextColor } from "@/src/lib/utils/scanStatus";
@@ -38,8 +35,6 @@ export default function Page() {
   const dlpAlerts = dlpLocked ? SAMPLE_DLP_ALERTS : realDlpAlerts;
   const dlpLoading = dlpLocked ? false : realDlpLoading;
   const { health } = useIntegrationsHealth();
-  const { summary } = useCostSummary();
-  const { vCoreUsage } = useVCoreUsage();
 
   const isLoading = catalogLoading || historyLoading || dlpLoading;
 
@@ -82,9 +77,6 @@ export default function Page() {
     return [...latestBySource.values()].sort((a, b) => b.assetsDiscovered - a.assetsDiscovered).slice(0, 6);
   }, [history]);
   const coverageMax = Math.max(1, ...coverageRows.map((r) => r.assetsDiscovered));
-
-  const TrendIconEl = createElement(trendIcon(summary), { size: 11 });
-  const trendColorClass = trendColor(summary);
 
   return (
     <div className="space-y-6">
@@ -217,36 +209,12 @@ export default function Page() {
           )}
         </SectionCard>
 
-        <SectionCard title="Cost & Usage" viewHref="/dashboard/purview/cost-billing">
-          {!summary ? (
-            <Loader size="sm" text="Loading cost data…" className="py-4" />
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border border-(--custom-table-border) bg-(--custom-table-bg) p-3">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">Month to Date</p>
-                <p className="text-lg font-bold text-foreground mt-1">{formatCurrency(summary.currentMonthCost, summary.currency)}</p>
-                <p className={`text-[11px] mt-0.5 flex items-center gap-1 ${trendColorClass}`}>
-                  {TrendIconEl}
-                  {trendLabel(summary)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-(--custom-table-border) bg-(--custom-table-bg) p-3">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">vCore-Hours</p>
-                <p className="text-lg font-bold text-foreground mt-1">{vCoreUsage ? `${vCoreUsage.vCoreHours.toFixed(2)} h` : "—"}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {vCoreUsage ? formatCurrency(vCoreUsage.cost, vCoreUsage.currency) : "Billed scan compute"}
-                </p>
-              </div>
-            </div>
-          )}
-        </SectionCard>
-
         <SectionCard title="Integrations Status" viewHref="/dashboard/purview/integrations">
-          {!health || health.services.length === 0 ? (
+          {(health?.services ?? []).length === 0 ? (
             <p className="text-xs text-muted-foreground">No integration health data available yet.</p>
           ) : (
             <div className="divide-y divide-(--custom-table-border)">
-              {health.services.map((service) => (
+              {(health?.services ?? []).map((service) => (
                 <div key={service.name} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                   <span className="text-xs text-foreground/80">{service.displayName}</span>
                   <StatusCell status={service.status} />

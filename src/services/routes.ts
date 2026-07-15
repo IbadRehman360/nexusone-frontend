@@ -47,6 +47,8 @@ export const MODULE_CONSENT_ROUTES = {
   INITIATE: "/module-consent/initiate",
   COMPLETE: "/module-consent/complete",
   STATUS: "/module-consent/status",
+  RECHECK_PURVIEW: "/module-consent/recheck-purview",
+  PURVIEW_DETAILS: "/module-consent/purview-details",
 } as const;
 
 /** Invitations — pending invites into a tenant. */
@@ -66,6 +68,7 @@ export const DEV_ROUTES = {
   STOP_MODULE_SCENARIO: "/dev/impersonate/module-scenario",
   RESET_ONBOARDING: "/dev/impersonate/reset-onboarding",
   TOGGLE_TENANT_STATUS: "/dev/impersonate/toggle-tenant-status",
+  RESET_PURVIEW_CONNECTION: "/dev/impersonate/reset-purview-connection",
 } as const;
 
 /** Billing & Plan settings page — subscription, invoices, payment methods, seats. */
@@ -318,15 +321,8 @@ export const PURVIEW_ROUTES = {
     COLLECTIONS: "/purview/data-map/collections",
     SCAN_RULE_SETS: "/purview/data-map/scan-rule-sets",
   },
-  COST: {
-    SUMMARY: "/purview/cost/summary",
-    METRICS: "/purview/cost/metrics",
-    SCAN_HISTORY: "/purview/cost/scan-history",
-    VCORE_USAGE: "/purview/cost/vcore-usage",
-  },
   SCAN_STATUSES: "/purview/scan-statuses",
   SENSITIVITY_LABELS: "/purview/sensitivity-labels",
-  GOVERNANCE_ACTIVITY: "/purview/governance/activity",
   DLP: "/purview/dlp",
   INTEGRATIONS_HEALTH: "/purview/integrations/health",
 } as const;

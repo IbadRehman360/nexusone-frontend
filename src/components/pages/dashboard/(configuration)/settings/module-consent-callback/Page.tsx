@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { completeModuleConsent, initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
+import { completeModuleConsent, initiateModuleConsent, getModuleConnectionStatus } from "@/src/services/module-consent/moduleConsentApi";
 import { getMe } from "@/src/services/auth";
 import { MODULE_LABELS, MODULE_TO_CONSENT_SERVICE, nextUnconnectedModule } from "@/src/lib/constants/modules";
 import { Button } from "@/src/components/ui/inputs/Button";
@@ -65,6 +65,35 @@ export default function Page() {
           user.subscription?.paidModules ?? [],
           user.subscription?.connectedModules ?? [],
         );
+        // Purview can't auto-connect: it needs the customer's own account
+        // name + Log Analytics workspace ID first, plus two manual role
+        // grants — the multi-step wizard at /dashboard/purview/connect.
+        // Whether to resume mid-wizard or start from scratch depends on
+        // whether Purview's OWN consent already ACTUALLY completed (this
+        // callback also fires right after that, not just when some other
+        // module's consent chains into Purview being next) —
+        // paidModules/connectedModules can't tell these apart, and neither
+        // can `status` alone: PROVISIONING is also the status right after
+        // the connect form submits, before Microsoft consent has even
+        // happened. `consentCompleted` (objectId actually set) is the one
+        // signal that's unambiguous.
+        if (next === "purview") {
+          const purviewStatus = await getModuleConnectionStatus("PURVIEW");
+          setPhase("success");
+          // Three distinct resume points, since PROVISIONING alone can't
+          // tell them apart: consent not done yet → start of the wizard
+          // (readiness/network-access/admin-consent); consent done but the
+          // account name/workspace ID haven't been saved → connection-details;
+          // both done → the role-grant steps.
+          let resumeUrl = "/dashboard/purview/connect";
+          if (purviewStatus.consentCompleted) {
+            resumeUrl = purviewStatus.detailsSubmitted
+              ? "/dashboard/purview/connect?step=log-analytics-role"
+              : "/dashboard/purview/connect?step=connection-details";
+          }
+          setTimeout(() => router.replace(resumeUrl), 1500);
+          return;
+        }
         if (next) {
           setNextLabel(MODULE_LABELS[next] ?? next);
           const { authorizationUrl } = await initiateModuleConsent(MODULE_TO_CONSENT_SERVICE[next]);

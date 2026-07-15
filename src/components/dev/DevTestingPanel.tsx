@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,6 +10,7 @@ import {
   Palette,
   RotateCcw,
   UserCog,
+  ShieldOff,
   RefreshCcw as RefreshIcon,
 } from "lucide-react";
 import { isDev } from "@/src/lib/devHarness";
@@ -23,6 +25,7 @@ import {
   toggleTenantStatus,
   startModuleScenario,
   stopModuleScenario,
+  resetPurviewConnection,
 } from "@/src/services/dev/impersonationApi";
 
 type PanelTab = "theme" | "role" | "onboarding";
@@ -41,12 +44,14 @@ const TABS: { id: PanelTab; label: string; icon: typeof Palette }[] = [
  */
 export function DevTestingPanel() {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<PanelTab>("theme");
   const [roleBusy, setRoleBusy] = useState<string | null>(null);
   const [resetBusy, setResetBusy] = useState(false);
   const [toggleBusy, setToggleBusy] = useState(false);
   const [moduleScenarioBusy, setModuleScenarioBusy] = useState(false);
+  const [purviewResetBusy, setPurviewResetBusy] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: impersonationStatus } = useQuery({
@@ -102,6 +107,23 @@ export function DevTestingPanel() {
     } catch (err) {
       toast.error("Couldn't reset onboarding", { description: err instanceof Error ? err.message : "Please try again." });
       setResetBusy(false);
+    }
+  };
+
+  const handleResetPurviewConnection = async () => {
+    setPurviewResetBusy(true);
+    try {
+      await resetPurviewConnection();
+      // The connect wizard reads this on mount, not from any TanStack Query
+      // cache — no query invalidation needed, just navigate there fresh.
+      toast.success("Purview connection reset", {
+        description: "Consent, account name, and workspace ID are all cleared for this tenant.",
+      });
+      router.push("/dashboard/purview/connect");
+    } catch (err) {
+      toast.error("Couldn't reset the Purview connection", { description: err instanceof Error ? err.message : "Please try again." });
+    } finally {
+      setPurviewResetBusy(false);
     }
   };
 
@@ -248,6 +270,22 @@ export function DevTestingPanel() {
                   >
                     <RefreshIcon size={13} className={resetBusy ? "animate-spin" : ""} />
                     Reset my onboarding
+                  </button>
+                </div>
+
+                <div className="pt-2 border-t border-border/20">
+                  <p className="text-[11px] font-semibold text-foreground/80 mb-1">Purview connection</p>
+                  <p className="text-[11px] text-muted-foreground mb-2">
+                    Deletes just this tenant&apos;s Purview connection (consent, account name, Log Analytics
+                    workspace ID) so the connect wizard starts fresh — no org wipe, no re-sign-in.
+                  </p>
+                  <button
+                    onClick={handleResetPurviewConnection}
+                    disabled={purviewResetBusy}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-warning-400/30 bg-warning/5 text-xs font-medium text-warning-400 hover:bg-warning/10 transition-colors disabled:opacity-50"
+                  >
+                    <ShieldOff size={13} className={purviewResetBusy ? "animate-spin" : ""} />
+                    Reset Purview connection
                   </button>
                 </div>
 
