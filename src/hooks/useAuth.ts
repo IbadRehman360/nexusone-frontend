@@ -21,9 +21,14 @@ export function useAuth() {
     queryFn: getMe,
     retry: false,
     staleTime: 60_000,
-    // While pending approval, poll so a SUPER_ADMIN's approval takes effect
-    // on the PendingApprovalScreen without a manual reload.
-    refetchInterval: (q) => (q.state.data?.tenantStatus === "pending_approval" ? 30_000 : false),
+    // While pending approval, poll fast so a SUPER_ADMIN's approval takes
+    // effect on the PendingApprovalScreen without a manual reload. Every
+    // other authenticated session still polls, just slower — this is the
+    // fallback for a deactivation/reactivation landing while the presence
+    // socket (see AuthGuard's tenant:status-changed listener) isn't
+    // connected for whatever reason; the socket is the fast path, this is
+    // the backstop, same two-layer pattern as the backoffice's notifications.
+    refetchInterval: (q) => (q.state.data?.tenantStatus === "pending_approval" ? 30_000 : 120_000),
   });
 
   const logout = async () => {

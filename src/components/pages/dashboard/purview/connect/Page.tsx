@@ -22,6 +22,7 @@ import {
   type ModuleConnectionStatus,
   type PurviewVerificationResult,
 } from "@/src/services/module-consent/moduleConsentApi";
+import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { OnboardingStepper, type OnboardingStep } from "./OnboardingStepper";
 
 const STEPS: OnboardingStep[] = [
@@ -112,6 +113,16 @@ function ExternalLinkButton({ href, label }: { href: string; label: string }) {
 export default function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Connecting a Microsoft Purview account is only meaningful once the
+  // module has actually been purchased (real Stripe trial or paid) — a
+  // tenant still in the look-around Preview never bought anything, so
+  // there's nothing for admin consent to attach to. Every other module
+  // (Entra/Power Platform) enforces this by only rendering their Connect
+  // button when `useModulePhase` reports `trialing`/`connected`; this page
+  // is a standalone route reachable by URL, so it needs the same check
+  // applied directly rather than inheriting it from a banner that's never shown.
+  const { phase } = useModulePhase("purview");
+  const canConnect = phase === "trialing" || phase === "connected";
 
   const [step, setStep] = useState<StepId>("readiness");
   // True until the initial resume check below resolves. "step" defaults to
@@ -146,6 +157,14 @@ export default function Page() {
   // it's still in the address bar) would keep re-triggering the jump-ahead
   // instead of a genuine first-time visit landing on step 1 like it should.
   useEffect(() => {
+    // Not purchased — nothing to resume, and starting a status check here
+    // would just race the redirect below. The render guard is what actually
+    // keeps the wizard off-screen; this only avoids a wasted network call.
+    if (!canConnect) {
+      setResolvingStep(false);
+      return;
+    }
+
     const resumeAt = searchParams.get("step");
     // "grant-access" is the old, pre-split step id from an earlier revision
     // of this wizard — treat it the same as the first step it became.
@@ -295,6 +314,16 @@ export default function Page() {
       {resolvingStep ? (
         <div className="flex items-center justify-center py-24">
           <Loader2 size={22} className="animate-spin text-muted-foreground" />
+        </div>
+      ) : !canConnect ? (
+        <div className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg) p-8 text-center">
+          <h2 className="text-base font-semibold text-foreground">Purchase Purview to connect</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Connecting a Microsoft Purview account is only available once Purview has been purchased.
+          </p>
+          <Button className="mt-5" onClick={() => router.push("/dashboard/purview")}>
+            Back to Purview
+          </Button>
         </div>
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">

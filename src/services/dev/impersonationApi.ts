@@ -56,11 +56,3 @@ export const toggleTenantStatus = async (): Promise<{ status: string }> => {
   const response = await apiClient.post(DEV_ROUTES.TOGGLE_TENANT_STATUS);
   return unwrap(response.data);
 };
-
-/** Deletes just the current tenant's Purview ServicePrincipal row (consent,
- * account name, Log Analytics workspace ID — everything) so the connect
- * wizard starts fresh, without wiping the org or forcing a re-sign-in. */
-export const resetPurviewConnection = async (): Promise<{ tenantId: string }> => {
-  const response = await apiClient.post(DEV_ROUTES.RESET_PURVIEW_CONNECTION);
-  return unwrap(response.data);
-};

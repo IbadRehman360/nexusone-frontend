@@ -68,7 +68,6 @@ export const DEV_ROUTES = {
   STOP_MODULE_SCENARIO: "/dev/impersonate/module-scenario",
   RESET_ONBOARDING: "/dev/impersonate/reset-onboarding",
   TOGGLE_TENANT_STATUS: "/dev/impersonate/toggle-tenant-status",
-  RESET_PURVIEW_CONNECTION: "/dev/impersonate/reset-purview-connection",
 } as const;
 
 /** Billing & Plan settings page — subscription, invoices, payment methods, seats. */
