@@ -4,8 +4,15 @@
 
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
+import type { PresentedError } from '@/src/lib/errors/getErrorPresentation';
 
 export type DtSortDir = 'asc' | 'desc' | null;
+
+/**
+ * Error state for the table. Backward-compatible: a plain string renders the
+ * message only (old behaviour); the object form also surfaces a reference id.
+ */
+export type DtError = string | PresentedError;
 
 export interface DtColumn<T> {
   /** Unique column key */
@@ -70,7 +77,15 @@ export interface DataTableProps<T> {
   // --- states ---
   loading?: boolean;
   loadingRows?: number;
-  error?: string;
+  /**
+   * Error to render in place of the table. A plain `string` renders exactly as
+   * before (message only). The object form additionally shows a monospace
+   * "Reference ID" line — pass `presentError(error)` from lib/errors to get a
+   * friendly, leak-safe message plus the correlationId the user quotes to
+   * support. Both forms are accepted, so existing string call sites are
+   * unaffected.
+   */
+  error?: DtError;
   emptyState?: DtEmptyState;
 
   // --- behaviour ---

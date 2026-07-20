@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import {
   LogIn,
   ShieldCheck,
@@ -26,6 +25,8 @@ import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useSignInLogs } from "@/src/hooks/data/useSignInLogs";
 import { downloadSignInLogs } from "@/src/services/entra-id/signInLogsApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { SignInDateRange, SignInExportFormat, SignInLogFilters, SignInLogRow, SignInStatus, SignInTab } from "@/src/types/signInLogs";
 
 const RANGE_MS: Record<SignInDateRange, number> = {
@@ -111,7 +112,7 @@ export default function Page() {
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      toast.error("Couldn't export sign-in logs", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't export sign-in logs" });
     } finally {
       setExporting(false);
     }
@@ -205,7 +206,7 @@ export default function Page() {
             className="border-0 rounded-none"
             pageSize={999}
             loading={isLoading}
-            error={error?.message}
+            error={error ? presentError(error) : undefined}
             onRowClick={setSelectedRow}
             emptyState={{
               icon: LogIn,

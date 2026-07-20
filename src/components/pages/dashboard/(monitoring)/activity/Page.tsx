@@ -11,7 +11,8 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { useActivityLog } from "@/src/hooks/data/useActivityLog";
 import { toCsv, downloadTextFile } from "@/src/lib/utils/csvExport";
 import { CATEGORY_CONFIG, CATEGORY_OPTIONS, STATUS_OPTIONS, DATE_RANGE_OPTIONS } from "./categoryConfig";
-import type { ActivityLog, ActivityCategory, ActivityStatus } from "@/src/services/auditLogs/auditLogApi";
+import { formatActivityAction } from "./activityLabel";
+import type { ActivityLog, ActivityCategory } from "@/src/services/auditLogs/auditLogApi";
 import { Activity, Download, RefreshCw, ExternalLink } from "lucide-react";
 
 const CARD_COLOR: Record<ActivityCategory, "blue" | "purple" | "green" | "orange"> = {
@@ -29,10 +30,11 @@ function subtractDays(days: number): string {
 
 function exportToCsv(rows: ActivityLog[]) {
   const csv = toCsv(
-    ["Timestamp", "User", "Action", "Category", "Status", "Resource", "Environment"],
+    ["Timestamp", "User", "Activity", "Action Code", "Category", "Status", "Resource", "Environment"],
     rows.map((r) => [
       new Date(r.timestamp).toLocaleString(),
       r.user,
+      formatActivityAction(r.action),
       r.action,
       CATEGORY_CONFIG[r.category].label,
       r.status,
@@ -69,7 +71,8 @@ export default function Page() {
     if (status && a.status !== status) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!a.action.toLowerCase().includes(q) && !a.resource.toLowerCase().includes(q) && !a.user.toLowerCase().includes(q)) return false;
+      const haystack = `${formatActivityAction(a.action)} ${a.action} ${a.resource} ${a.user}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
     }
     return true;
   });
@@ -137,7 +140,12 @@ export default function Page() {
                       <Icon size={13} className={cfg.colorClass} />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{a.action}</p>
+                      <p className="text-xs font-semibold text-foreground truncate" title={a.action}>
+                        {formatActivityAction(a.action)}
+                      </p>
+                      {a.resourceName && (
+                        <p className="text-[11px] text-muted-foreground truncate">{a.resourceName}</p>
+                      )}
                       {a.category === "power_platform" && a.environmentUrl && (
                         <Link
                           href={`/dashboard/dataverse-logs?environmentUrl=${encodeURIComponent(a.environmentUrl)}`}

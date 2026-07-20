@@ -13,6 +13,7 @@ import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConne
 import { SAMPLE_PP_IMPORT_JOBS, SAMPLE_PP_ENVIRONMENTS } from "@/src/lib/sampleData/powerPlatform";
 import { ImportWizard } from "./ImportWizard";
 import { ImportResultPanel } from "./ImportResultPanel";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { ImportJob } from "@/src/types/powerPlatform";
 import { UploadSimple } from "@phosphor-icons/react";
 import { Cloud, Plus, X } from "lucide-react";
@@ -99,7 +100,7 @@ export default function Page() {
             data={jobs}
             keyExtractor={(job) => job.id}
             loading={!locked && isLoading}
-            error={locked ? undefined : error?.message}
+            error={locked || !error ? undefined : presentError(error)}
             locked={locked}
             lockedTooltip={lockedTooltip}
             sortEnabled

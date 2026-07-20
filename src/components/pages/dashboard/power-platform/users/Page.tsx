@@ -15,6 +15,7 @@ import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConne
 import { SAMPLE_PP_USERS } from "@/src/lib/sampleData/powerPlatform";
 import { ManageUserModal } from "./ManageUserModal";
 import { DelegateUserModal } from "./DelegateUserModal";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { PPUser } from "@/src/types/powerPlatform";
 import { UserCircleGear } from "@phosphor-icons/react";
 import { Cloud, Clock, Settings2 } from "lucide-react";
@@ -79,7 +80,7 @@ export default function Page() {
           data={users}
           keyExtractor={(user) => user.userId}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           searchValue={searchQuery}

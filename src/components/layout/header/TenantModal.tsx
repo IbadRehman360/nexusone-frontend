@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Building2, Plus } from "lucide-react";
 import { Modal } from "@/src/components/ui/overlays/Modal";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { useAuth } from "@/src/hooks/useAuth";
 import { getTenants, switchTenant, type Tenant } from "@/src/services/tenants/tenantApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import { ConnectTenantModal } from "./ConnectTenantModal";
 
 interface TenantModalProps {
@@ -40,7 +40,7 @@ export function TenantModal({ isOpen, onClose }: TenantModalProps) {
       queryClient.clear();
       window.location.reload();
     } catch (err) {
-      toast.error("Failed to switch tenant", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to switch tenant" });
       setSwitchingId(null);
     }
   };

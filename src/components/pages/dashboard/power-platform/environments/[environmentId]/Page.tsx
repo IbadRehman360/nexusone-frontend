@@ -12,6 +12,7 @@ import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_ENVIRONMENTS } from "@/src/lib/sampleData/powerPlatform";
 import { updateEnvironment } from "@/src/services/power-platform/environmentApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import { Globe, Cloud, ArrowLeft, Save } from "lucide-react";
 
 export default function Page() {
@@ -45,7 +46,7 @@ export default function Page() {
       toast.success("Environment updated");
       await refetch();
     } catch (err) {
-      toast.error("Failed to update environment", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to update environment" });
     } finally {
       setSubmitting(false);
     }

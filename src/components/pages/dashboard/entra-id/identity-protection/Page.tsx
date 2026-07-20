@@ -17,6 +17,8 @@ import { formatDateTime } from "@/src/lib/utils/dateFormat";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useIdentityProtection, useIdpUser } from "@/src/hooks/data/useIdentityProtection";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { HealthChip, IdpInsight, IdpQueueItem, IdpSeverityFilter, IdpStateFilter, IdpWindowFilter, InsightSeverity, RiskLevel, RiskState } from "@/src/types/identityProtection";
 
 const EXPOSURE_GOOD = 20;
@@ -175,7 +177,7 @@ function IdpDrawerBody({ id }: { id: string }) {
   const { detail, isLoading, error } = useIdpUser(id);
 
   if (isLoading) return <Loader size="md" text="Loading user…" className="py-16" />;
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
   if (!detail) return null;
 
   return (
@@ -379,7 +381,7 @@ export default function Page() {
               pageSize={25}
               pageSizeOptions={[10, 25, 50, 100]}
               loading={isLoading}
-              error={error?.message}
+              error={error ? presentError(error) : undefined}
               onRowClick={(p) => setDrawerId(p.principalId)}
               emptyState={{ icon: ShieldCheck, title: "No risky users or sign-ins", description: "Nothing matches the current search and filters." }}
             />

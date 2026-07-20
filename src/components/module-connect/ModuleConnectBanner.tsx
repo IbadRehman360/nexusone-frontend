@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { PlugZap, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { SubscriptionModule } from "@/src/components/auth/ModuleGuard";
 import { MODULE_LABELS, MODULE_TO_CONSENT_SERVICE } from "@/src/lib/constants/modules";
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
@@ -32,7 +32,7 @@ export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) 
       const { authorizationUrl } = await initiateModuleConsent(MODULE_TO_CONSENT_SERVICE[module]);
       window.location.href = authorizationUrl;
     } catch (err) {
-      toast.error("Couldn't start Connect", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't start Connect" });
       setConnecting(false);
     }
   };

@@ -13,6 +13,8 @@ import { usePpDlpPolicies } from "@/src/hooks/data/usePpDlpPolicies";
 import { getDlpPolicyDetail, deleteDlpPolicy, fetchAuditActivity } from "@/src/services/power-platform/ppGovernanceApi";
 import { DlpPolicyDetailPanel } from "./DlpPolicyDetailPanel";
 import { DlpPolicyModal } from "./DlpPolicyModal";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_DLP_POLICIES, SAMPLE_PP_DLP_ACTIVITY, SAMPLE_PP_DLP_POLICY_DETAILS } from "@/src/lib/sampleData/powerPlatform";
@@ -84,7 +86,7 @@ export default function Page() {
       setEditingPolicy(d);
       setShowModal(true);
     } catch (err) {
-      toast.error("Failed to load policy", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to load policy" });
     } finally {
       setDetailLoading(false);
     }
@@ -100,7 +102,7 @@ export default function Page() {
       if (selectedId === deleteTarget.id) setSelectedId(null);
       await refetch();
     } catch (err) {
-      toast.error("Failed to delete policy", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to delete policy" });
     } finally {
       setDeleting(false);
     }
@@ -159,7 +161,7 @@ export default function Page() {
             data={policies}
             keyExtractor={(policy) => policy.id}
             loading={!locked && isLoading}
-            error={locked ? undefined : error?.message}
+            error={locked || !error ? undefined : presentError(error)}
             locked={locked}
             lockedTooltip={lockedTooltip}
             searchValue={searchQuery}

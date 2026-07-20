@@ -7,6 +7,7 @@ import { Modal } from "@/src/components/ui/overlays/Modal";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { initiateConsent } from "@/src/services/tenants/tenantApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -68,7 +69,7 @@ export function ConnectTenantModal({ isOpen, onClose }: ConnectTenantModalProps)
       setPopupBlocked(!win);
       setPhase("consenting");
     } catch (err) {
-      toast.error("Failed to start consent flow", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to start consent flow" });
     } finally {
       setSubmitting(false);
     }

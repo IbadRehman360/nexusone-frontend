@@ -9,6 +9,7 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Modal } from "@/src/components/ui/overlays/Modal";
 import { usePaymentMethods } from "@/src/hooks/data/useBilling";
 import { createPortalSession, removePaymentMethod } from "@/src/services/billing/billingApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { PaymentMethodItem } from "@/src/services/billing/billingApi";
 import { CreditCard, ExternalLink, X } from "lucide-react";
 
@@ -24,7 +25,7 @@ export function PaymentMethodsTab() {
       const url = await createPortalSession();
       window.location.assign(url);
     } catch (err) {
-      toast.error("Couldn't open billing portal", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't open billing portal" });
       setOpeningPortal(false);
     }
   };
@@ -38,7 +39,7 @@ export function PaymentMethodsTab() {
       setDeleteTarget(null);
       await refetch();
     } catch (err) {
-      toast.error("Couldn't remove card", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't remove card" });
     } finally {
       setDeleting(false);
     }

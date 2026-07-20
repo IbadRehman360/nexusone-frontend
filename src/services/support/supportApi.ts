@@ -82,3 +82,24 @@ export const replyToTicket = async (id: string, content: string): Promise<Ticket
   const response = await apiClient.post(SUPPORT_ROUTES.REPLIES(id), { content });
   return unwrap<TicketComment>(response.data);
 };
+
+export interface ReportErrorPayload {
+  correlationId?: string;
+  errorCode?: string;
+  errorMessage?: string;
+  whatHappened?: string;
+  url?: string;
+}
+
+export interface ReportErrorResult {
+  /** True when an open ticket for this error already existed and we attached to
+   * it instead of creating a new one ("we're already aware"). */
+  deduped: boolean;
+  ticketNumber: string;
+  ticketId: string;
+}
+
+export const reportErrorTicket = async (payload: ReportErrorPayload): Promise<ReportErrorResult> => {
+  const response = await apiClient.post(SUPPORT_ROUTES.REPORT_ERROR, payload);
+  return unwrap<ReportErrorResult>(response.data);
+};

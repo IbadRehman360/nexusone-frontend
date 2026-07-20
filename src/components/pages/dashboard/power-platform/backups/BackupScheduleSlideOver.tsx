@@ -6,6 +6,7 @@ import { Check, Calendar, Info, Trash2 } from "lucide-react";
 import { SlideOver } from "@/src/components/ui/overlays/SlideOver";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { listBackupSchedules, createBackupSchedule, deleteBackupSchedule } from "@/src/services/power-platform/backupsApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { BackupSchedule } from "@/src/types/powerPlatform";
 
 const CADENCE_OPTIONS = [
@@ -49,7 +50,7 @@ export function BackupScheduleSlideOver({ isOpen, onClose, environmentId, enviro
       toast.success("Backup schedule saved", { description: `${environmentName} will back up ${CADENCE_OPTIONS.find((o) => o.value === cronExpression)?.label.toLowerCase()}.` });
       onClose();
     } catch (err) {
-      toast.error("Failed to save schedule", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to save schedule" });
     } finally {
       setSaving(false);
     }
@@ -64,7 +65,7 @@ export function BackupScheduleSlideOver({ isOpen, onClose, environmentId, enviro
       toast.success("Backup schedule removed");
       onClose();
     } catch (err) {
-      toast.error("Failed to remove schedule", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to remove schedule" });
     } finally {
       setDeleting(false);
     }

@@ -9,6 +9,7 @@ import { getLatestComplianceReport, runComplianceCheck } from "@/src/services/po
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_ENVIRONMENTS, SAMPLE_PP_COMPLIANCE_REPORT } from "@/src/lib/sampleData/powerPlatform";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import { ComplianceDetailHeader } from "./ComplianceDetailHeader";
 import type { ComplianceCheck, ComplianceReport } from "@/src/types/powerPlatform";
 import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, ClipboardList } from "lucide-react";
@@ -63,7 +64,7 @@ export default function Page() {
       setReport(r);
       setReportError(false);
     } catch (err) {
-      toast.error("Failed to run compliance check", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to run compliance check" });
     } finally {
       setRunning(false);
     }

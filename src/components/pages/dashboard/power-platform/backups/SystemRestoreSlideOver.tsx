@@ -9,6 +9,7 @@ import { StatBox } from "@/src/components/ui/display/StatBox";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { systemRestore } from "@/src/services/power-platform/backupsApi";
 import { useRestoreTargets } from "@/src/hooks/data/useRestoreTargets";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 interface SystemRestoreSlideOverProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export function SystemRestoreSlideOver({ isOpen, environmentId, environmentName,
       onRestored();
       handleClose();
     } catch (err) {
-      toast.error("Failed to start restore", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to start restore" });
     } finally {
       setSubmitting(false);
     }

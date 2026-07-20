@@ -26,6 +26,9 @@ import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { formatDateTime } from "@/src/lib/utils/dateFormat";
 import { useEntraTier } from "@/src/hooks/data/useEntraTier";
 import { useMfaCatalog, useMfaPosture, useMfaPolicy, useMfaUserDetail } from "@/src/hooks/data/useMfa";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
+import type { PresentedError } from "@/src/lib/errors/getErrorPresentation";
 import type { HealthChip, MfaEnforcingPolicy, MfaUserFilter, MfaUserListItem, MfaView, MethodTone } from "@/src/types/mfa";
 
 const SEVERITY_VARIANT: Record<HealthChip["severity"], BadgeVariant> = {
@@ -195,7 +198,7 @@ function matchesFilter(user: MfaUserListItem, filter: MfaUserFilter): boolean {
   }
 }
 
-function MfaUsersTab({ users, isLoading, error, onRowClick }: { users: MfaUserListItem[]; isLoading: boolean; error?: string; onRowClick: (u: MfaUserListItem) => void }) {
+function MfaUsersTab({ users, isLoading, error, onRowClick }: { users: MfaUserListItem[]; isLoading: boolean; error?: string | PresentedError; onRowClick: (u: MfaUserListItem) => void }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<MfaUserFilter>("all");
 
@@ -276,7 +279,7 @@ function MfaPostureTab() {
   const { posture, isLoading, error } = useMfaPosture(true);
 
   if (isLoading) return <Loader size="md" text="Loading posture…" className="py-16" />;
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
   if (!posture) return null;
 
   return (
@@ -323,7 +326,7 @@ function MfaPolicyTab() {
   const { policy, isLoading, error } = useMfaPolicy(true);
 
   if (isLoading) return <Loader size="md" text="Loading policy health…" className="py-16" />;
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
   if (!policy) return null;
 
   const detailsRows: { label: string; value: React.ReactNode }[] = [
@@ -404,7 +407,7 @@ function MfaUserDrawer({ userId, onClose }: { userId: string | null; onClose: ()
   return (
     <SlideOver isOpen={!!userId} onClose={onClose} title={detail?.userDisplayName ?? "User detail"} subtitle={detail?.userPrincipalName} icon={<Fingerprint size={16} />} width="md">
       {isLoading && <Loader size="md" text="Loading user…" className="py-16" />}
-      {error && <p className="py-12 text-center text-xs text-error-400">{error.message}</p>}
+      {error && <InlineError error={presentError(error)} />}
       {detail && (
         <div className="p-5 space-y-5">
           <div className="flex items-center gap-2">
@@ -507,7 +510,7 @@ export default function Page() {
           <div className="space-y-4">
             <Tabs variant="pill" tabs={TABS} activeTab={view} onChange={setView} />
 
-            {view === "users" && <MfaUsersTab users={users} isLoading={tierLoading || isLoading} error={error?.message} onRowClick={(u) => setDrawerId(u.id)} />}
+            {view === "users" && <MfaUsersTab users={users} isLoading={tierLoading || isLoading} error={error ? presentError(error) : undefined} onRowClick={(u) => setDrawerId(u.id)} />}
             {view === "posture" && <div className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg)">{<MfaPostureTab />}</div>}
             {view === "policy" && <MfaPolicyTab />}
           </div>

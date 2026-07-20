@@ -10,6 +10,7 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { Tabs } from "@/src/components/ui/navigation/Tabs";
 import { useRoles } from "@/src/hooks/data/useRoles";
 import { getTeamRoles, assignRolesToTeam, changeTeamBusinessUnit } from "@/src/services/power-platform/teamApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { BusinessUnit, Team } from "@/src/types/powerPlatform";
 
 type TabId = "overview" | "members" | "roles" | "businessUnit";
@@ -92,7 +93,7 @@ export function ManageTeamModal({ team, environmentUrl, businessUnits, onClose, 
       setPendingRoleIds(new Set());
       onUpdated();
     } catch (err) {
-      toast.error("Failed to assign roles", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to assign roles" });
     } finally {
       setSavingRoles(false);
     }
@@ -106,7 +107,7 @@ export function ManageTeamModal({ team, environmentUrl, businessUnits, onClose, 
       toast.success("Business unit changed", { description: `${team.name} has been moved.` });
       onUpdated();
     } catch (err) {
-      toast.error("Failed to change business unit", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to change business unit" });
     } finally {
       setSavingBu(false);
     }

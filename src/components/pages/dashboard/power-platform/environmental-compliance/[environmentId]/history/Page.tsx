@@ -11,6 +11,7 @@ import { getComplianceHistory, runComplianceCheck } from "@/src/services/power-p
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_ENVIRONMENTS, SAMPLE_PP_COMPLIANCE_HISTORY } from "@/src/lib/sampleData/powerPlatform";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import { ComplianceDetailHeader } from "../ComplianceDetailHeader";
 import type { ComplianceReport } from "@/src/types/powerPlatform";
 import { History } from "lucide-react";
@@ -54,7 +55,7 @@ export default function Page() {
       toast.success("Compliance check complete", { description: `Score: ${r.score}%` });
       setHistory((prev) => [r, ...prev]);
     } catch (err) {
-      toast.error("Failed to run compliance check", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to run compliance check" });
     } finally {
       setRunning(false);
     }

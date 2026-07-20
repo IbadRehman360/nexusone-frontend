@@ -10,6 +10,7 @@ import {
   RotateCcw,
   UserCog,
   RefreshCcw as RefreshIcon,
+  Bug,
 } from "lucide-react";
 import { isDev } from "@/src/lib/devHarness";
 import { cn } from "@/src/lib/utils/cn";
@@ -24,13 +25,19 @@ import {
   startModuleScenario,
   stopModuleScenario,
 } from "@/src/services/dev/impersonationApi";
+import apiClient from "@/src/services/client";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { InlineError } from "@/src/components/error/InlineError";
+import { ErrorState } from "@/src/components/error/ErrorState";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 
-type PanelTab = "theme" | "role" | "onboarding";
+type PanelTab = "theme" | "role" | "onboarding" | "errors";
 
 const TABS: { id: PanelTab; label: string; icon: typeof Palette }[] = [
   { id: "theme", label: "Theme Testing", icon: Palette },
   { id: "role", label: "Role Testing", icon: UserCog },
   { id: "onboarding", label: "Onboarding", icon: RefreshIcon },
+  { id: "errors", label: "Error Testing", icon: Bug },
 ];
 
 /**
@@ -47,6 +54,8 @@ export function DevTestingPanel() {
   const [resetBusy, setResetBusy] = useState(false);
   const [toggleBusy, setToggleBusy] = useState(false);
   const [moduleScenarioBusy, setModuleScenarioBusy] = useState(false);
+  const [testError, setTestError] = useState<unknown>(null);
+  const [testErrorBusy, setTestErrorBusy] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: impersonationStatus } = useQuery({
@@ -72,7 +81,7 @@ export function DevTestingPanel() {
       await startImpersonation(roleName);
       await refreshEverything();
     } catch (err) {
-      toast.error("Couldn't impersonate role", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't impersonate role" });
     } finally {
       setRoleBusy(null);
     }
@@ -84,7 +93,7 @@ export function DevTestingPanel() {
       await stopImpersonation();
       await refreshEverything();
     } catch (err) {
-      toast.error("Couldn't revert role", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't revert role" });
     } finally {
       setRoleBusy(null);
     }
@@ -100,7 +109,7 @@ export function DevTestingPanel() {
       toast.success("Onboarding reset — you'll be signed out now.");
       window.location.href = "/signin";
     } catch (err) {
-      toast.error("Couldn't reset onboarding", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't reset onboarding" });
       setResetBusy(false);
     }
   };
@@ -117,7 +126,7 @@ export function DevTestingPanel() {
       });
       await refreshEverything();
     } catch (err) {
-      toast.error("Couldn't toggle tenant status", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't toggle tenant status" });
     } finally {
       setToggleBusy(false);
     }
@@ -132,7 +141,7 @@ export function DevTestingPanel() {
       });
       await refreshEverything();
     } catch (err) {
-      toast.error("Couldn't start the locked-tenant simulation", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't start the locked-tenant simulation" });
     } finally {
       setModuleScenarioBusy(false);
     }
@@ -145,9 +154,28 @@ export function DevTestingPanel() {
       toast.success("Module scenario cleared", { description: "Real subscription status is back in effect." });
       await refreshEverything();
     } catch (err) {
-      toast.error("Couldn't clear the module scenario", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't clear the module scenario" });
     } finally {
       setModuleScenarioBusy(false);
+    }
+  };
+
+  // Hits the real GET /api/debug/error-test (a deliberate 500) through the
+  // normal apiClient path, so the caught error is the exact normalized shape a
+  // real server failure produces — errorCode + correlationId, no stack. We then
+  // render it BOTH ways a user would meet it: the friendly toast (showApiError)
+  // and the inline card (InlineError), each showing the same reference id.
+  const handleTriggerTestError = async () => {
+    setTestErrorBusy(true);
+    setTestError(null);
+    try {
+      await apiClient.get("/debug/error-test");
+      toast.success("The test endpoint returned OK — expected it to error.");
+    } catch (err) {
+      setTestError(err);
+      showApiError(err);
+    } finally {
+      setTestErrorBusy(false);
     }
   };
 
@@ -197,7 +225,7 @@ export function DevTestingPanel() {
             {tab === "role" && (
               <div className="space-y-2">
                 <p className="text-[11px] text-muted-foreground mb-2">
-                  Re-issues your session with a preset role's REAL capabilities baked in — Owner-only buttons, capability
+                  Re-issues your session with a preset role&apos;s REAL capabilities baked in — Owner-only buttons, capability
                   gates, and backend 403s all respond as that role, not a UI skin.
                 </p>
 
@@ -298,6 +326,40 @@ export function DevTestingPanel() {
                     </button>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {tab === "errors" && (
+              <div className="space-y-3">
+                <p className="text-[11px] text-muted-foreground mb-1">
+                  Calls the real <code>GET /api/debug/error-test</code> (a deliberate 500) through the normal data path —
+                  so you see exactly what a user meets when the server errors: a friendly toast, the inline card, and
+                  the full error panel with <em>Contact Support</em>, all carrying the reference ID from the server.
+                  Never a raw stack trace.
+                </p>
+                <button
+                  onClick={handleTriggerTestError}
+                  disabled={testErrorBusy}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-error-400/30 bg-error/5 text-xs font-medium text-error-400 hover:bg-error/10 transition-colors disabled:opacity-50"
+                >
+                  <Bug size={13} className={testErrorBusy ? "animate-pulse" : ""} />
+                  Trigger test error
+                </button>
+
+                {testError != null && (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-(--custom-table-border) bg-(--custom-table-bg)">
+                      <InlineError error={presentError(testError)} onRetry={handleTriggerTestError} />
+                    </div>
+                    <div className="rounded-xl border border-(--custom-table-border) bg-(--custom-table-bg)">
+                      <ErrorState
+                        error={testError}
+                        onRetry={handleTriggerTestError}
+                        whatHappened="Testing the error flow"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

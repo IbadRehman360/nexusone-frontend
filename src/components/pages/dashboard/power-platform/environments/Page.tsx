@@ -15,6 +15,8 @@ import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_ENVIRONMENTS } from "@/src/lib/sampleData/powerPlatform";
 import { createEnvironment, type CreateEnvironmentPayload } from "@/src/services/power-platform/environmentApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { PowerPlatformEnvironment } from "@/src/types/powerPlatform";
 import { Globe, Cloud, Plus, Settings2 } from "lucide-react";
 
@@ -79,7 +81,7 @@ export default function Page() {
       setShowCreateModal(false);
       await refetch();
     } catch (err) {
-      toast.error("Failed to create environment", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to create environment" });
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +112,7 @@ export default function Page() {
           data={environments}
           keyExtractor={(env) => env.environmentId}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           sortEnabled

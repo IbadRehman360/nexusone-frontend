@@ -18,6 +18,9 @@ import { Loader } from "@/src/components/ui/feedback/Loader";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useCsaAttributes, useCsaUsers, useCsaServicePrincipals, useCsaMutations } from "@/src/hooks/data/useSecurityAttributes";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { CsaAppType, CsaAttribute, CsaCategory, CsaPrincipal, CsaServicePrincipal, CsaTagValue, CsaUser, PrincipalKind, CreateAttributePayload } from "@/src/types/securityAttributes";
 
 function hasValue(v: CsaTagValue): boolean {
@@ -830,7 +833,7 @@ export default function Page() {
       await createAttribute.mutateAsync(payload);
       toast.success("Attribute created", { description: `${payload.name} is now available for assignment.` });
     } catch (err) {
-      toast.error("Failed to create attribute", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to create attribute" });
       throw err;
     }
   }
@@ -853,7 +856,7 @@ export default function Page() {
       await assignAttribute.mutateAsync({ userId: id, payload: { attributeSetId: setId, attributeName: name, value, isCollection } });
       toast.success("Attribute assigned");
     } catch (err) {
-      toast.error("Failed to assign attribute", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to assign attribute" });
     }
   }
 
@@ -862,7 +865,7 @@ export default function Page() {
       await removeAttribute.mutateAsync({ userId: id, setId, name, isCollection });
       toast.success("Attribute removed");
     } catch (err) {
-      toast.error("Failed to remove attribute", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to remove attribute" });
     }
   }
 
@@ -871,7 +874,7 @@ export default function Page() {
       await assignSpAttribute.mutateAsync({ spId: id, payload: { attributeSetId: setId, attributeName: name, value, isCollection } });
       toast.success("Attribute assigned");
     } catch (err) {
-      toast.error("Failed to assign attribute", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to assign attribute" });
     }
   }
 
@@ -880,7 +883,7 @@ export default function Page() {
       await removeSpAttribute.mutateAsync({ spId: id, setId, name, isCollection });
       toast.success("Attribute removed");
     } catch (err) {
-      toast.error("Failed to remove attribute", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to remove attribute" });
     }
   }
 
@@ -1016,10 +1019,7 @@ export default function Page() {
             {tab === "applications" && (
               <>
                 {errorSps ? (
-                  <div className="px-6 py-14 text-center">
-                    <p className="text-sm font-semibold text-foreground">Couldn&apos;t load applications</p>
-                    <p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">{errorSps.message}</p>
-                  </div>
+                  <InlineError error={presentError(errorSps)} />
                 ) : (
                   <>
                     {selectedAppIds.length > 0 && (

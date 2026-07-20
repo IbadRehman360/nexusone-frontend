@@ -7,6 +7,7 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Modal } from "@/src/components/ui/overlays/Modal";
 import { createPortalSession, reactivateSubscription, cancelSubscription } from "@/src/services/billing/billingApi";
 import { useInvalidateBilling } from "@/src/hooks/data/useBilling";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { BillingState } from "@/src/services/billing/billingApi";
 
 export type DisplayState = "trial-active" | "trial-ending" | "grace" | "active" | "past-due" | "canceled" | "expired";
@@ -68,7 +69,7 @@ export function StatusBanner({ displayState, state, isOwner }: StatusBannerProps
       const url = await createPortalSession();
       window.location.assign(url);
     } catch (err) {
-      toast.error("Couldn't open billing portal", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't open billing portal" });
       setBusy(false);
     }
   };
@@ -80,7 +81,7 @@ export function StatusBanner({ displayState, state, isOwner }: StatusBannerProps
       toast.success("Subscription reactivated");
       await invalidate();
     } catch (err) {
-      toast.error("Couldn't reactivate", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't reactivate" });
     } finally {
       setBusy(false);
     }
@@ -94,7 +95,7 @@ export function StatusBanner({ displayState, state, isOwner }: StatusBannerProps
       setShowCancel(false);
       await invalidate();
     } catch (err) {
-      toast.error("Couldn't cancel", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't cancel" });
     } finally {
       setBusy(false);
     }

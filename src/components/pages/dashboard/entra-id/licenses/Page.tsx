@@ -35,6 +35,9 @@ import { SearchInput } from "@/src/components/ui/inputs/SearchInput";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useLicenses, useLicenseUsers, useLicenseUsage, useLicenseCosts, useAssignLicense, useRevokeLicense } from "@/src/hooks/data/useLicenses";
 import { exportLicensePDF } from "@/src/lib/utils/licensePdfExport";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
+import type { PresentedError } from "@/src/lib/errors/getErrorPresentation";
 import type { LicenseSummary, UserLicenseSummary } from "@/src/types/licenses";
 
 const currencyFmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -104,7 +107,7 @@ interface UserActivityRow {
   assignedProducts: string[];
 }
 
-function LicenseOverviewTable({ licenses, loading, error, searchValue }: { licenses: LicenseSummary[]; loading: boolean; error?: string; searchValue?: string }) {
+function LicenseOverviewTable({ licenses, loading, error, searchValue }: { licenses: LicenseSummary[]; loading: boolean; error?: string | PresentedError; searchValue?: string }) {
   const columns: DtColumn<LicenseSummary>[] = [
     {
       key: "name",
@@ -175,7 +178,7 @@ function LicenseUsageTable({
 }: {
   usageData: UserActivityRow[];
   loading: boolean;
-  error?: string;
+  error?: string | PresentedError;
   searchValue?: string;
   onAssign: (row: UserActivityRow) => void;
   onRevoke: (row: UserActivityRow) => void;
@@ -438,7 +441,7 @@ function AssignLicenseModal({ user, licenses, onClose }: { user: UserActivityRow
           toast.success("License assigned", { description: `Assigned to ${user.displayName}.` });
           onClose();
         },
-        onError: (err) => toast.error("Failed to assign license", { description: err instanceof Error ? err.message : "Please try again." }),
+        onError: (err) => showApiError(err, { title: "Failed to assign license" }),
       },
     );
   };
@@ -514,7 +517,7 @@ function RevokeLicenseModal({ user, licenses, onClose }: { user: UserActivityRow
           setConfirmSkuId(null);
           onClose();
         },
-        onError: (err) => toast.error("Failed to revoke license", { description: err instanceof Error ? err.message : "Please try again." }),
+        onError: (err) => showApiError(err, { title: "Failed to revoke license" }),
       },
     );
   };
@@ -663,7 +666,7 @@ export default function Page() {
             <LicenseUsageTable
               usageData={usage}
               loading={usageLoading}
-              error={usageError?.message}
+              error={usageError ? presentError(usageError) : undefined}
               searchValue={search}
               onAssign={setAssignTarget}
               onRevoke={setRevokeTarget}
@@ -674,7 +677,7 @@ export default function Page() {
 
           {tab === "savings" && <SavingsPanel waste={costs?.waste ?? []} searchValue={search} loading={costsLoading} />}
 
-          {tab === "overview" && <LicenseOverviewTable licenses={licenses} loading={licensesLoading} error={licensesError?.message} searchValue={search} />}
+          {tab === "overview" && <LicenseOverviewTable licenses={licenses} loading={licensesLoading} error={licensesError ? presentError(licensesError) : undefined} searchValue={search} />}
         </DataTableMainHeader>
       </div>
 

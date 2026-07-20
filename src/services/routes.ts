@@ -99,6 +99,7 @@ export const DATAVERSE_LOGS_ROUTES = {
 /** Support settings page — Zoho Desk-backed tickets. */
 export const SUPPORT_ROUTES = {
   TICKETS: "/support/tickets",
+  REPORT_ERROR: "/support/tickets/report-error",
   TICKET: (id: string) => `/support/tickets/${id}`,
   REPLIES: (id: string) => `/support/tickets/${id}/replies`,
   ATTACHMENT_CONTENT: (id: string, attachmentId: string) => `/support/tickets/${id}/attachments/${attachmentId}/content`,

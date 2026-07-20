@@ -14,6 +14,8 @@ import { runComplianceCheck } from "@/src/services/power-platform/complianceApi"
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_COMPLIANCE_OVERVIEW } from "@/src/lib/sampleData/powerPlatform";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { ComplianceOverviewItem } from "@/src/types/powerPlatform";
 import { CheckCircle2, AlertTriangle, XCircle, HelpCircle, Cloud, ClipboardList, History, Zap } from "lucide-react";
 import { ShieldCheck } from "@phosphor-icons/react";
@@ -49,7 +51,7 @@ export default function Page() {
       toast.success("Compliance check complete", { description: `Score: ${r.score}%` });
       await refetch();
     } catch (err) {
-      toast.error("Failed to run compliance check", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to run compliance check" });
     } finally {
       setRunningId(null);
     }
@@ -80,7 +82,7 @@ export default function Page() {
           data={items}
           keyExtractor={(item) => item.environmentId}
           loading={isLoading}
-          error={error?.message}
+          error={error ? presentError(error) : undefined}
           locked={locked}
           lockedTooltip={lockedTooltip}
           sortEnabled

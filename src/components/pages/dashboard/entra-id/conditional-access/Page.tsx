@@ -13,6 +13,7 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useConditionalAccess } from "@/src/hooks/data/useConditionalAccess";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type {
   CaControls,
   CaPolicyListItem,
@@ -310,7 +311,7 @@ export default function Page() {
           pageSize={25}
           pageSizeOptions={[10, 25, 50, 100]}
           loading={isLoading}
-          error={error?.message}
+          error={error ? presentError(error) : undefined}
           onRowClick={(p) => setDrawerId(p.id)}
           emptyState={{ icon: ShieldCheck, title: "No Conditional Access policies", description: "No policies match the current search and filters." }}
         />

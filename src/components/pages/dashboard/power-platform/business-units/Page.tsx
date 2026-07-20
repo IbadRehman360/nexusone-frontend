@@ -15,6 +15,8 @@ import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_BUSINESS_UNITS } from "@/src/lib/sampleData/powerPlatform";
 import { createBusinessUnit } from "@/src/services/power-platform/businessUnitApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { BusinessUnit } from "@/src/types/powerPlatform";
 import { Users, ChevronRight, ChevronDown, Cloud, Plus } from "lucide-react";
 
@@ -112,9 +114,7 @@ export default function Page() {
       setShowCreateModal(false);
       await refetch();
     } catch (err) {
-      toast.error("Failed to create business unit", {
-        description: err instanceof Error ? err.message : "Please try again.",
-      });
+      showApiError(err, { title: "Failed to create business unit" });
     } finally {
       setSubmitting(false);
     }
@@ -175,7 +175,7 @@ export default function Page() {
           data={rows}
           keyExtractor={(unit) => unit.businessUnitId}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           searchValue={searchQuery}

@@ -10,6 +10,8 @@ import { Users, ShieldAlert, TriangleAlert, Info, CheckCircle2, Braces } from "l
 import { useGroupDetail } from "@/src/hooks/data/useGroups";
 import type { GroupFlag, GroupPrincipal, GroupSectionKey } from "@/src/types/groups";
 import { formatDate } from "@/src/lib/utils/dateFormat";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 
 type GroupTabKey = "overview" | "owners" | "members" | "access";
 
@@ -108,7 +110,7 @@ export function GroupDetailSlideOver({ groupId, onClose }: { groupId: string | n
       {isLoading ? (
         <p className="text-xs text-muted-foreground px-5 py-6">Loading group…</p>
       ) : error ? (
-        <p className="text-xs text-error-400 px-5 py-6">{error.message}</p>
+        <InlineError error={presentError(error)} />
       ) : !detail ? (
         <p className="text-xs text-muted-foreground px-5 py-6">Could not load this group&apos;s details.</p>
       ) : (

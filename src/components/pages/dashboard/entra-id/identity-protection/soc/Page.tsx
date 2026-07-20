@@ -13,6 +13,8 @@ import { DetailRow } from "@/src/components/ui/display/DetailRow";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useTenants } from "@/src/hooks/data/useTenants";
 import { useIdpSoc } from "@/src/hooks/data/useIdentityProtection";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { IdpSocQueueItem, IdpSocTenantRollup } from "@/src/types/identityProtection";
 import { HealthChips, riskStateLabel, humanizeReason, formatAge } from "../Page";
 
@@ -126,7 +128,7 @@ export default function Page() {
         </div>
       </SectionCard>
 
-      {error && <p className="text-sm text-error-400">{error.message}</p>}
+      {error && <InlineError error={presentError(error)} />}
 
       {(isLoading || queue) && (
         <div className="space-y-4">

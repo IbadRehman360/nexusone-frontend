@@ -1,40 +1,29 @@
-import { createSupportTicket } from "@/src/services/support/supportApi";
-import { getCurrentTenantId } from "@/src/lib/tenantContext";
+import { reportErrorTicket, type ReportErrorResult } from "@/src/services/support/supportApi";
 
 /**
- * Files a support ticket for a user-reported error (Phase 11 "Report this
- * issue"), reusing the existing Zoho-backed support API. Attaches only
- * non-sensitive diagnostic context — correlationId, tenant, URL, timestamp,
- * and what the user was doing — NEVER tokens, passwords, or payload data.
+ * Reports a user-hit error to support via the dedicated report-error endpoint,
+ * which per-tenant-dedups by error code (so the same bug doesn't create
+ * duplicate tickets) and embeds the reference (correlation) id + error code so
+ * staff can trace exactly what broke. Attaches only non-sensitive diagnostic
+ * context — reference id, error code, friendly message, what the user was
+ * doing, and the page URL — NEVER tokens, passwords, or payload data. The
+ * tenant + user are inferred server-side from the session.
  */
 export interface ReportErrorContext {
   correlationId?: string;
+  errorCode?: string;
   /** Short description of what the user was doing when it broke. */
   whatHappened?: string;
-  /** The technical/user-facing message, for context. */
+  /** The friendly message the user saw, for context. */
   errorMessage?: string;
 }
 
-export async function reportError(ctx: ReportErrorContext): Promise<void> {
-  const tenantId = getCurrentTenantId();
-  const url = typeof window !== "undefined" ? window.location.href : "unknown";
-
-  const description = [
-    ctx.whatHappened ? `What I was doing: ${ctx.whatHappened}` : null,
-    ctx.errorMessage ? `Error: ${ctx.errorMessage}` : null,
-    ctx.correlationId ? `Reference ID: ${ctx.correlationId}` : null,
-    tenantId ? `Tenant: ${tenantId}` : null,
-    `URL: ${url}`,
-    `Time: ${new Date().toISOString()}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  const ref = ctx.correlationId ? ` [${ctx.correlationId.slice(0, 8)}]` : "";
-
-  await createSupportTicket({
-    subject: `Reported issue${ref}`,
-    description,
-    priority: "High",
+export async function reportError(ctx: ReportErrorContext): Promise<ReportErrorResult> {
+  return reportErrorTicket({
+    correlationId: ctx.correlationId,
+    errorCode: ctx.errorCode,
+    errorMessage: ctx.errorMessage,
+    whatHappened: ctx.whatHappened,
+    url: typeof window !== "undefined" ? window.location.href : undefined,
   });
 }

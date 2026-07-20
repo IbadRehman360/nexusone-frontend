@@ -75,10 +75,11 @@ export default function RootLayout({
               // [data-sonner-toast] CSS otherwise wins over unmarked utilities.
               unstyled: true,
               classNames: {
-                // Light per-severity background tint (opacity-scaled via the
-                // `/` notation, not a solid fill) + a plain, larger icon with
-                // no box/border around it — color comes through via icon
-                // color + the card's own light tint only.
+                // OPAQUE themed card. Severity is conveyed by the colored
+                // border + the colored icon only — NOT a translucent bg fill.
+                // A `bg-error/8`-style tint would override this opaque base
+                // (both are !important) and leave the toast ~92% transparent,
+                // letting page content behind it bleed through. Keep it solid.
                 toast:
                   "flex items-start gap-3 w-[420px] p-3.5 px-5 rounded-lg shadow-lg border " +
                   "bg-(--custom-table-bg)! border-(--custom-table-border)! text-foreground!",
@@ -92,10 +93,10 @@ export default function RootLayout({
                   "bg-(--custom-table-header-bg)! text-muted-foreground! text-xs! font-medium! rounded-lg! px-2.5! py-1.5!",
                 closeButton:
                   "bg-transparent! border-none! text-muted-foreground!",
-                success: "bg-success/8! border-success-400/30!",
-                error: "bg-error/8! border-error-400/30!",
-                warning: "bg-warning/8! border-warning-400/30!",
-                info: "bg-info/8! border-info-400/30!",
+                success: "border-success-400/40!",
+                error: "border-error-400/40!",
+                warning: "border-warning-400/40!",
+                info: "border-info-400/40!",
               },
             }}
           />

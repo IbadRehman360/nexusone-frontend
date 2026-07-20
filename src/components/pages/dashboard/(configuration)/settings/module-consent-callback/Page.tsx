@@ -8,6 +8,7 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { completeModuleConsent, initiateModuleConsent } from "@/src/services/module-consent/moduleConsentApi";
 import { getMe } from "@/src/services/auth";
 import { MODULE_LABELS, MODULE_TO_CONSENT_SERVICE, nextUnconnectedModule } from "@/src/lib/constants/modules";
+import { presentErrorMessage } from "@/src/lib/errors/getErrorPresentation";
 import { Button } from "@/src/components/ui/inputs/Button";
 
 type Phase = "connecting" | "success" | "failure";
@@ -89,7 +90,7 @@ export default function Page() {
           return;
         }
         setPhase("failure");
-        setMessage(err instanceof Error ? err.message : "Could not complete the connection.");
+        setMessage(presentErrorMessage(err));
       }
     })();
   }, [searchParams, queryClient, router]);

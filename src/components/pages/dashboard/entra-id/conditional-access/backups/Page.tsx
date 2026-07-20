@@ -13,6 +13,9 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import { useCaBackups, useCaBackupMutations } from "@/src/hooks/data/useCaBackups";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { CaPolicyRestoreStatus, CaRestoreSummary, CaSnapshotSummary } from "@/src/types/conditionalAccess";
 import { formatDateTime as formatDate } from "@/src/lib/utils/dateFormat";
 
@@ -198,7 +201,7 @@ export default function Page() {
         toast.success("Snapshot deleted", { description: "The snapshot was removed." });
       }
     } catch (err) {
-      toast.error(action.type === "restore" ? "Restore failed" : "Delete failed", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: action.type === "restore" ? "Restore failed" : "Delete failed" });
     } finally {
       setPending(null);
     }
@@ -216,7 +219,7 @@ export default function Page() {
       />
 
       {error ? (
-        <p className="text-sm text-error-400">{error.message}</p>
+        <InlineError error={presentError(error)} />
       ) : (
         <DataTableMainHeader
           title="Snapshots"

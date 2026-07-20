@@ -16,6 +16,8 @@ import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConne
 import { SAMPLE_PP_DELEGATIONS } from "@/src/lib/sampleData/powerPlatform";
 import { revokeDelegation } from "@/src/services/power-platform/ppDelegationApi";
 import { CreateDelegationModal } from "./CreateDelegationModal";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { PPDelegation } from "@/src/types/powerPlatform";
 import { CalendarCheck, Cloud, Plus, Ban } from "lucide-react";
 
@@ -58,7 +60,7 @@ export default function Page() {
       setRevokeTarget(null);
       await refetch();
     } catch (err) {
-      toast.error("Failed to revoke delegation", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to revoke delegation" });
     } finally {
       setRevoking(false);
     }
@@ -106,7 +108,7 @@ export default function Page() {
           data={delegations}
           keyExtractor={(d) => d.id}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           searchValue={searchQuery}

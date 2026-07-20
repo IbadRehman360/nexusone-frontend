@@ -10,6 +10,7 @@ import { Modal } from "@/src/components/ui/overlays/Modal";
 import { TotpInput } from "@/src/components/ui/inputs/TotpInput";
 import { useAuth } from "@/src/hooks/useAuth";
 import { startMfaSetup, confirmMfaSetup, disableMfa } from "@/src/services/auth";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 type ModalPhase = "closed" | "setup" | "disable";
 
@@ -46,7 +47,7 @@ export default function Page() {
       setManualKey(result.manualKey);
       setPhase("setup");
     } catch (err) {
-      toast.error("Couldn't start 2FA setup", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't start 2FA setup" });
     } finally {
       setStarting(false);
     }
@@ -68,9 +69,7 @@ export default function Page() {
       setError(true);
       setShake(true);
       setCode("");
-      toast.error(phase === "setup" ? "Invalid code" : "Couldn't disable 2FA", {
-        description: err instanceof Error ? err.message : "Please try again.",
-      });
+      showApiError(err, { title: phase === "setup" ? "Invalid code" : "Couldn't disable 2FA" });
     } finally {
       setConfirming(false);
     }

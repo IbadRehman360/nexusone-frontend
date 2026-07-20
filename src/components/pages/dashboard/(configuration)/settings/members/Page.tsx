@@ -11,6 +11,7 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { Tabs } from "@/src/components/ui/navigation/Tabs";
 import { StatsCarousel } from "@/src/components/ui/display/StatsCarousel";
 import { useAuth } from "@/src/hooks/useAuth";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import { useTenantMembers, useInvitations, useInvalidateMembers } from "@/src/hooks/data/useMembers";
 import { useBillingState } from "@/src/hooks/data/useBilling";
 import { removeTenantMember, disableMemberMfa } from "@/src/services/tenants/tenantApi";
@@ -91,7 +92,7 @@ export default function Page() {
       setRemoveTarget(null);
       await refetchMembers();
     } catch (err) {
-      toast.error("Failed to remove member", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to remove member" });
     } finally {
       setRemoving(false);
     }
@@ -106,7 +107,7 @@ export default function Page() {
       setRevokeTarget(null);
       await refetchInvites();
     } catch (err) {
-      toast.error("Failed to revoke invitation", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to revoke invitation" });
     } finally {
       setRemoving(false);
     }
@@ -123,7 +124,7 @@ export default function Page() {
       setDisableMfaTarget(null);
       await refetchMembers();
     } catch (err) {
-      toast.error("Couldn't disable 2FA", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't disable 2FA" });
     } finally {
       setDisablingMfa(false);
     }
@@ -136,7 +137,7 @@ export default function Page() {
       toast.success("Invitation resent", { description: `A new invite email was sent to ${invite.email}.` });
       await refetchInvites();
     } catch (err) {
-      toast.error("Failed to resend invitation", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to resend invitation" });
     } finally {
       setResendingId(null);
     }

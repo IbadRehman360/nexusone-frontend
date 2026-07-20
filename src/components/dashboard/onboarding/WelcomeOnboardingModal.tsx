@@ -11,6 +11,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useTenants } from "@/src/hooks/data/useTenants";
 import { acknowledgeWelcome } from "@/src/services/auth";
 import { formatModulesInPhase } from "@/src/lib/constants/modules";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 const OWNER_ROLE = "Owner" as const;
 
@@ -63,7 +64,7 @@ export function WelcomeOnboardingModal() {
       await acknowledgeWelcome();
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     } catch (err) {
-      toast.error("Couldn't save", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't save" });
     }
   };
 

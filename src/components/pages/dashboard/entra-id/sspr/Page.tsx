@@ -19,6 +19,9 @@ import type { ColorVariant } from "@/src/components/ui/display/StatsCard";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useEntraTier } from "@/src/hooks/data/useEntraTier";
 import { useSsprCatalog, useSsprConfig, useSsprUsage, useSsprUserDetail } from "@/src/hooks/data/useSspr";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
+import type { PresentedError } from "@/src/lib/errors/getErrorPresentation";
 import type { HealthChip, MethodCategory, SsprAllowedMethod, SsprStatus, SsprUserFilter, SsprUserListItem, SsprUserMethod, SsprView, WritebackStatus } from "@/src/types/sspr";
 import { formatDate, formatDateTime } from "@/src/lib/utils/dateFormat";
 
@@ -205,7 +208,7 @@ function matchesFilter(user: SsprUserListItem, filter: SsprUserFilter): boolean 
   }
 }
 
-function SsprUsersTab({ users, isLoading, error, onRowClick }: { users: SsprUserListItem[]; isLoading: boolean; error?: string; onRowClick: (u: SsprUserListItem) => void }) {
+function SsprUsersTab({ users, isLoading, error, onRowClick }: { users: SsprUserListItem[]; isLoading: boolean; error?: string | PresentedError; onRowClick: (u: SsprUserListItem) => void }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<SsprUserFilter>("all");
 
@@ -270,7 +273,7 @@ function SsprUsersTab({ users, isLoading, error, onRowClick }: { users: SsprUser
 function SsprConfigTab() {
   const { config, isLoading, error } = useSsprConfig(true);
 
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
 
   const statusRows: { label: string; value: React.ReactNode }[] = config
     ? [
@@ -357,7 +360,7 @@ function SsprUsageTab() {
   const { usage, isLoading, error } = useSsprUsage(true);
 
   if (isLoading) return <Loader size="md" text="Loading usage…" className="py-16" />;
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
   if (!usage) return null;
 
   return (
@@ -442,7 +445,7 @@ function SsprUserDrawer({ userId, onClose }: { userId: string | null; onClose: (
   return (
     <SlideOver isOpen={!!userId} onClose={onClose} title={detail?.userDisplayName ?? "User detail"} subtitle={detail?.userPrincipalName} icon={<KeyRound size={16} />} width="md">
       {isLoading && <Loader size="md" text="Loading user…" className="py-16" />}
-      {error && <p className="py-12 text-center text-xs text-error-400">{error.message}</p>}
+      {error && <InlineError error={presentError(error)} />}
       {detail && (
         <div className="p-5 space-y-5">
           <div className="flex items-center gap-2">
@@ -555,7 +558,7 @@ function SsprBody({
       <div className="space-y-4">
         <Tabs variant="pill" tabs={TABS} activeTab={view} onChange={setView} />
 
-        {view === "users" && <SsprUsersTab users={users} isLoading={isLoading} error={error?.message} onRowClick={(u) => setDrawerId(u.id)} />}
+        {view === "users" && <SsprUsersTab users={users} isLoading={isLoading} error={error ? presentError(error) : undefined} onRowClick={(u) => setDrawerId(u.id)} />}
         {view === "config" && <SsprConfigTab />}
         {view === "usage" && <div className="rounded-2xl border border-(--custom-table-border) bg-(--custom-table-bg)">{<SsprUsageTab />}</div>}
       </div>

@@ -8,6 +8,9 @@ import { SlideOver } from "@/src/components/ui/overlays/SlideOver";
 import { Tabs } from "@/src/components/ui/navigation/Tabs";
 import { DetailRow } from "@/src/components/ui/display/DetailRow";
 import { useCaOverview, useCaConditions, useCaControls, useCaCoverage, useCaActivity } from "@/src/hooks/data/useConditionalAccess";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
+import type { PresentedError } from "@/src/lib/errors/getErrorPresentation";
 import type { CaDetailTab, CaState, NamedLocationRef } from "@/src/types/conditionalAccess";
 import { HealthChips } from "./Page";
 import { formatDateTime } from "@/src/lib/utils/dateFormat";
@@ -48,12 +51,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function TabStatus({ isLoading, error, isEmpty, emptyLabel = "Nothing to show.", onRetry, children }: { isLoading: boolean; error?: string; isEmpty?: boolean; emptyLabel?: string; onRetry?: () => void; children: React.ReactNode }) {
+function TabStatus({ isLoading, error, isEmpty, emptyLabel = "Nothing to show.", onRetry, children }: { isLoading: boolean; error?: string | PresentedError; isEmpty?: boolean; emptyLabel?: string; onRetry?: () => void; children: React.ReactNode }) {
   if (isLoading) return <Loader size="md" text="Loading…" className="py-12" />;
   if (error)
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <p className="max-w-sm text-xs text-error-400">{error}</p>
+        <InlineError error={error} />
         {onRetry && (
           <Button variant="outline" size="sm" onClick={onRetry}>
             Retry
@@ -68,7 +71,7 @@ function TabStatus({ isLoading, error, isEmpty, emptyLabel = "Nothing to show.",
 function OverviewTab({ id }: { id: string }) {
   const { data, isLoading, error } = useCaOverview(id);
   return (
-    <TabStatus isLoading={isLoading} error={error?.message} isEmpty={!data}>
+    <TabStatus isLoading={isLoading} error={error ? presentError(error) : undefined} isEmpty={!data}>
       {data && (
         <Section title="Overview">
           <DetailRow label="State" value={data.stateLabel} />
@@ -86,7 +89,7 @@ function OverviewTab({ id }: { id: string }) {
 function ConditionsTab({ id }: { id: string }) {
   const { data, isLoading, error } = useCaConditions(id, true);
   return (
-    <TabStatus isLoading={isLoading} error={error?.message} isEmpty={!data}>
+    <TabStatus isLoading={isLoading} error={error ? presentError(error) : undefined} isEmpty={!data}>
       {data && (
         <div className="space-y-4">
           <Section title="Users">
@@ -128,7 +131,7 @@ function ConditionsTab({ id }: { id: string }) {
 function ControlsTab({ id }: { id: string }) {
   const { data, isLoading, error } = useCaControls(id, true);
   return (
-    <TabStatus isLoading={isLoading} error={error?.message} isEmpty={!data}>
+    <TabStatus isLoading={isLoading} error={error ? presentError(error) : undefined} isEmpty={!data}>
       {data && (
         <div className="space-y-4">
           <Section title={`Grant controls (${data.grant.operator})`}>
@@ -155,7 +158,7 @@ function ControlsTab({ id }: { id: string }) {
 function CoverageTab({ id }: { id: string }) {
   const { data, isLoading, error } = useCaCoverage(id, true);
   return (
-    <TabStatus isLoading={isLoading} error={error?.message} isEmpty={!data}>
+    <TabStatus isLoading={isLoading} error={error ? presentError(error) : undefined} isEmpty={!data}>
       {data && (
         <div className="space-y-4">
           {data.gaps.length > 0 ? (
@@ -188,7 +191,7 @@ function ActivityTab({ id }: { id: string }) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">Configuration changes to this policy in the last 30 days, from the directory audit log.</p>
-      <TabStatus isLoading={isLoading} error={error?.message} onRetry={refetch} isEmpty={rows.length === 0} emptyLabel="No recorded changes to this policy in the last 30 days.">
+      <TabStatus isLoading={isLoading} error={error ? presentError(error) : undefined} onRetry={refetch} isEmpty={rows.length === 0} emptyLabel="No recorded changes to this policy in the last 30 days.">
         <div className="overflow-hidden rounded-xl border border-(--custom-table-border)">
           {rows.map((row) => (
             <div key={row.id} className="flex items-center justify-between gap-3 border-b border-(--custom-table-border) px-4 py-2 text-xs last:border-0">

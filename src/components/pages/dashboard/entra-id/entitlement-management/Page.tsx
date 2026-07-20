@@ -16,6 +16,8 @@ import { LicenseGateState } from "@/src/components/ui/display/LicenseGateState";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useEntitlementManagement, useEmPackage } from "@/src/hooks/data/useEntitlementManagement";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { EmExpiryFilter, EmInsight, EmItem, EmKindFilter, HealthChip, InsightSeverity } from "@/src/types/emPackages";
 import { formatDate } from "@/src/lib/utils/dateFormat";
 
@@ -143,7 +145,7 @@ function PackageDrawerBody({ id }: { id: string }) {
   const { detail, isLoading, error } = useEmPackage(id);
 
   if (isLoading) return <Loader size="md" text="Loading package…" className="py-16" />;
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
   if (!detail) return null;
 
   return (
@@ -336,7 +338,7 @@ export default function Page() {
               pageSize={25}
               pageSizeOptions={[10, 25, 50, 100]}
               loading={isLoading}
-              error={error?.message}
+              error={error ? presentError(error) : undefined}
               onRowClick={openRow}
               emptyState={{ icon: Package, title: "Nothing to show", description: "No access packages or lifecycle workflows match the current search and filters." }}
             />

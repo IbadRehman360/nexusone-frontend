@@ -12,6 +12,8 @@ import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import { useTenants } from "@/src/hooks/data/useTenants";
 import { usePimCompare } from "@/src/hooks/data/usePimCompare";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { PimCompareCellStatus, PimCompareGrid } from "@/src/types/pim";
 
 const CELL: Record<PimCompareCellStatus, { label: string; variant: BadgeVariant }> = {
@@ -62,7 +64,7 @@ export default function Page() {
         </div>
       </SectionCard>
 
-      {error && <p className="text-sm text-error-400">{error.message}</p>}
+      {error && <InlineError error={presentError(error)} />}
 
       {(isLoading || grid) && <ComparisonBoard grid={grid} loading={isLoading} />}
     </div>

@@ -10,6 +10,7 @@ import { useRoles } from "@/src/hooks/data/useRoles";
 import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_SECURITY_ROLES } from "@/src/lib/sampleData/powerPlatform";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { Role } from "@/src/types/powerPlatform";
 import { ShieldCheck, Cloud } from "lucide-react";
 
@@ -99,7 +100,7 @@ export default function Page() {
           data={groupedRoles}
           keyExtractor={(role) => role.roleId}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           searchValue={searchQuery}

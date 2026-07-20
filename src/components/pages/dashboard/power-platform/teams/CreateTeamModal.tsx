@@ -6,6 +6,7 @@ import { UsersThree } from "@phosphor-icons/react";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { createTeam } from "@/src/services/power-platform/teamApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { BusinessUnit } from "@/src/types/powerPlatform";
 
 interface CreateTeamModalProps {
@@ -87,7 +88,7 @@ export function CreateTeamModal({ isOpen, onClose, environmentUrl, environmentNa
       onCreated();
       handleClose();
     } catch (err) {
-      toast.error("Failed to create team", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to create team" });
     } finally {
       setSubmitting(false);
     }

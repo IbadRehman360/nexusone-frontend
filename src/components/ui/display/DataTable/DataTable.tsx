@@ -7,6 +7,7 @@ import { DataTableHeader } from './DataTableHeader';
 import { DataTableRow } from './DataTableRow';
 import { DataTablePagination } from './DataTablePagination';
 import { DataTableSkeleton } from './DataTableSkeleton';
+import { InlineError } from '@/src/components/error/InlineError';
 import type { DataTableProps, DtSortDir } from './types';
 
 export function DataTable<T>({
@@ -122,8 +123,8 @@ export function DataTable<T>({
   // --- Error ---
   if (error) {
     return (
-      <div className={cn('border border-border/30 bg-background-elevated px-6 py-10 text-center', className)}>
-        <p className="text-sm font-medium text-error-400">{error}</p>
+      <div className={cn('border border-(--custom-table-border) bg-(--custom-table-bg) rounded-xl', className)}>
+        <InlineError error={error} />
       </div>
     );
   }

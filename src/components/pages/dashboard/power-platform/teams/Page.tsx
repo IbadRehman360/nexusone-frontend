@@ -15,6 +15,7 @@ import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConne
 import { SAMPLE_PP_TEAMS } from "@/src/lib/sampleData/powerPlatform";
 import { CreateTeamModal } from "./CreateTeamModal";
 import { ManageTeamModal } from "./ManageTeamModal";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { Team } from "@/src/types/powerPlatform";
 import { UsersThree } from "@phosphor-icons/react";
 import { Cloud, Plus, Settings2 } from "lucide-react";
@@ -74,7 +75,7 @@ export default function Page() {
           data={teams}
           keyExtractor={(team) => team.teamId}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           searchValue={searchQuery}

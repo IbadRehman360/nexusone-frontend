@@ -7,6 +7,7 @@ import { CreateModal, FormField, formInputClass } from "@/src/components/ui/over
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { createSupportTicket } from "@/src/services/support/supportApi";
 import { useInvalidateSupport } from "@/src/hooks/data/useSupport";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { TicketPriority } from "@/src/services/support/supportApi";
 
 const MAX_FILES = 5;
@@ -68,7 +69,7 @@ export function NewTicketModal({ isOpen, onClose }: NewTicketModalProps) {
       await invalidate();
       handleClose();
     } catch (err) {
-      toast.error("Failed to submit ticket", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to submit ticket" });
     } finally {
       setSubmitting(false);
     }

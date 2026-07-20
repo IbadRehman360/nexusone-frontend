@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { SlideOver } from "@/src/components/ui/overlays/SlideOver";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { LifeBuoy, Paperclip, Send, Download } from "lucide-react";
 import { TicketStatusBadge, TicketPriorityBadge } from "./TicketStatusBadge";
 import { useSupportTicketDetail } from "@/src/hooks/data/useSupport";
 import { replyToTicket } from "@/src/services/support/supportApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 interface TicketDetailSlideOverProps {
   ticketId: string | null;
@@ -27,7 +27,7 @@ export function TicketDetailSlideOver({ ticketId, onClose }: TicketDetailSlideOv
       setReply("");
       await refetch();
     } catch (err) {
-      toast.error("Failed to send reply", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to send reply" });
     } finally {
       setSending(false);
     }

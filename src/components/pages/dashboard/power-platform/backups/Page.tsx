@@ -16,6 +16,8 @@ import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_ENVIRONMENTS, SAMPLE_PP_BACKUPS, SAMPLE_PP_BACKUP_SCHEDULE } from "@/src/lib/sampleData/powerPlatform";
 import { deleteBackup, deleteBackupSchedule, listBackupSchedules, syncBackupStatus } from "@/src/services/power-platform/backupsApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import { CreateBackupModal } from "./CreateBackupModal";
 import { RestoreBackupSlideOver } from "./RestoreBackupSlideOver";
 import { BackupScheduleSlideOver } from "./BackupScheduleSlideOver";
@@ -105,7 +107,7 @@ export default function Page() {
       await syncBackupStatus(runId);
       await refetch();
     } catch (err) {
-      toast.error("Sync failed", { description: err instanceof Error ? err.message : "Could not sync backup status." });
+      showApiError(err, { title: "Sync failed" });
     } finally {
       setSyncingRunId(null);
     }
@@ -134,7 +136,7 @@ export default function Page() {
       setDeleteTarget(null);
       await refetch();
     } catch (err) {
-      toast.error("Failed to delete backup", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to delete backup" });
     } finally {
       setDeleting(false);
     }
@@ -148,7 +150,7 @@ export default function Page() {
       toast.success("Backup schedule removed");
       setRealSchedule(null);
     } catch (err) {
-      toast.error("Failed to remove schedule", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to remove schedule" });
     } finally {
       setScheduleDeleting(false);
     }
@@ -273,7 +275,7 @@ export default function Page() {
               data={backups}
               keyExtractor={(backup) => backup.bapBackupId}
               loading={!locked && isLoading}
-              error={locked ? undefined : error?.message}
+              error={locked || !error ? undefined : presentError(error)}
               locked={locked}
               lockedTooltip={lockedTooltip}
               sortEnabled

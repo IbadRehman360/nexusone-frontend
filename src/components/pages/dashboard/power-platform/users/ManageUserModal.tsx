@@ -9,6 +9,7 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { Tabs } from "@/src/components/ui/navigation/Tabs";
 import { useRoles } from "@/src/hooks/data/useRoles";
 import { updateUserRoles, changeUserBusinessUnit } from "@/src/services/power-platform/userApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { BusinessUnit, PPUser } from "@/src/types/powerPlatform";
 
 type TabId = "roles" | "businessUnit";
@@ -75,7 +76,7 @@ export function ManageUserModal({ user, environmentUrl, environmentName, busines
       setPendingRoleIds(new Set());
       onUpdated();
     } catch (err) {
-      toast.error("Failed to assign roles", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to assign roles" });
     } finally {
       setSavingRoles(false);
     }
@@ -89,7 +90,7 @@ export function ManageUserModal({ user, environmentUrl, environmentName, busines
       toast.success("Business unit changed", { description: `${user.fullName} has been moved.` });
       onUpdated();
     } catch (err) {
-      toast.error("Failed to change business unit", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to change business unit" });
     } finally {
       setSavingBu(false);
     }

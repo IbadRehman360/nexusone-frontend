@@ -8,6 +8,7 @@ import { Modal } from "@/src/components/ui/overlays/Modal";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useBillingPlans, useInvalidateBilling } from "@/src/hooks/data/useBilling";
 import { redirectToCheckout, cancelModule, retryModuleInvoice } from "@/src/services/billing/billingApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import { MODULE_BY_KEY } from "./moduleCatalog";
 import type { PlanListItem, ModuleBillingInfo } from "@/src/services/billing/billingApi";
 
@@ -87,7 +88,7 @@ function PlanCard({
     try {
       await redirectToCheckout({ planId: plan.id });
     } catch (err) {
-      toast.error("Couldn't start checkout", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't start checkout" });
       setBusy(false);
     }
   };
@@ -101,7 +102,7 @@ function PlanCard({
       setShowCancelConfirm(false);
       await invalidate();
     } catch (err) {
-      toast.error("Couldn't cancel module", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't cancel module" });
     } finally {
       setBusy(false);
     }
@@ -115,7 +116,7 @@ function PlanCard({
       toast.success("Retry initiated", { description: "We'll let you know if the payment succeeds." });
       await invalidate();
     } catch (err) {
-      toast.error("Couldn't retry payment", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't retry payment" });
     } finally {
       setRetrying(false);
     }

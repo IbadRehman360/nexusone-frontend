@@ -6,6 +6,7 @@ import { CalendarCheck } from "lucide-react";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { getDelegatorRoles, createDelegation, type DelegatorRole } from "@/src/services/power-platform/ppDelegationApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { PPUser } from "@/src/types/powerPlatform";
 
 interface CreateDelegationModalProps {
@@ -98,7 +99,7 @@ export function CreateDelegationModal({ isOpen, onClose, environmentUrl, users, 
       onCreated();
       handleClose();
     } catch (err) {
-      toast.error("Failed to create delegation", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to create delegation" });
     } finally {
       setSubmitting(false);
     }

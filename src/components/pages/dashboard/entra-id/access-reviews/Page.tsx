@@ -15,6 +15,8 @@ import { Loader } from "@/src/components/ui/feedback/Loader";
 import type { BadgeVariant } from "@/src/components/ui/display/Badge";
 import type { DtColumn } from "@/src/components/ui/display/DataTable/types";
 import { useAccessReviews, useAccessReviewCampaign } from "@/src/hooks/data/useAccessReviews";
+import { InlineError } from "@/src/components/error/InlineError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { ArCampaignItem, ArDecisionTallies, ArInsight, ArScopeFilter, ArStatusFilter, HealthChip, InsightSeverity } from "@/src/types/accessReviews";
 import { formatDate } from "@/src/lib/utils/dateFormat";
 
@@ -144,7 +146,7 @@ function CampaignDrawerBody({ id }: { id: string }) {
   const { detail, isLoading, error } = useAccessReviewCampaign(id);
 
   if (isLoading) return <Loader size="md" text="Loading review…" className="py-16" />;
-  if (error) return <p className="py-12 text-center text-xs text-error-400">{error.message}</p>;
+  if (error) return <InlineError error={presentError(error)} />;
   if (!detail) return null;
 
   return (
@@ -350,7 +352,7 @@ export default function Page() {
               pageSize={25}
               pageSizeOptions={[10, 25, 50, 100]}
               loading={isLoading}
-              error={error?.message}
+              error={error ? presentError(error) : undefined}
               onRowClick={(c) => setDrawerId(c.id)}
               emptyState={{ icon: ClipboardCheck, title: "No access reviews", description: "No campaigns match the current search and filters." }}
             />

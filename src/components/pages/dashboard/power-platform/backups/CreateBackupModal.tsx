@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Archive } from "lucide-react";
 import { CreateModal, FormField, formInputClass } from "@/src/components/ui/overlays/CreateModal";
 import { createBackup } from "@/src/services/power-platform/backupsApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 interface CreateBackupModalProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ export function CreateBackupModal({ isOpen, onClose, environmentId, environmentN
       onCreated();
       handleClose();
     } catch (err) {
-      toast.error("Failed to start backup", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to start backup" });
     } finally {
       setSubmitting(false);
     }

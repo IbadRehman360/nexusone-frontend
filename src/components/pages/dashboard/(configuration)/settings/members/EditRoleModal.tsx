@@ -9,6 +9,7 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { useTenantRoles, useInvalidateMembers } from "@/src/hooks/data/useMembers";
 import { updateMemberRole } from "@/src/services/tenants/tenantApi";
 import { useAuth } from "@/src/hooks/useAuth";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { TenantMember } from "@/src/services/tenants/tenantApi";
 
 interface EditRoleModalProps {
@@ -38,7 +39,7 @@ export function EditRoleModal({ member, onClose }: EditRoleModalProps) {
       await invalidate();
       onClose();
     } catch (err) {
-      toast.error("Failed to update role", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to update role" });
     } finally {
       setSubmitting(false);
     }

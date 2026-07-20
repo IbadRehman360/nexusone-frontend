@@ -7,6 +7,7 @@ import { CreateModal, FormField, formInputClass } from "@/src/components/ui/over
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { useEnvironments } from "@/src/hooks/data/useEnvironments";
 import { listPpConnectors, createDlpPolicy, updateDlpPolicy } from "@/src/services/power-platform/ppGovernanceApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type {
   PpConnectorCatalogItem,
   PpDlpPolicyDetail,
@@ -138,9 +139,7 @@ export function DlpPolicyModal({ isOpen, onClose, policy, onSaved }: DlpPolicyMo
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(isEdit ? "Failed to update policy" : "Failed to create policy", {
-        description: err instanceof Error ? err.message : "Please try again.",
-      });
+      showApiError(err, { title: isEdit ? "Failed to update policy" : "Failed to create policy" });
     } finally {
       setSubmitting(false);
     }

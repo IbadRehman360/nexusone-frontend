@@ -13,6 +13,8 @@ import { useModulePhase } from "@/src/hooks/data/useModulePhase";
 import { ModuleConnectBanner } from "@/src/components/module-connect/ModuleConnectBanner";
 import { SAMPLE_PP_ENVIRONMENT_GROUPS } from "@/src/lib/sampleData/powerPlatform";
 import { createEnvironmentGroup, updateEnvironmentGroup, deleteEnvironmentGroup } from "@/src/services/power-platform/environmentGroupApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
+import { presentError } from "@/src/lib/errors/getErrorPresentation";
 import type { EnvironmentGroupWithEnvironments } from "@/src/types/powerPlatform";
 import { Layers2, Cloud, Plus, Settings2, Trash2 } from "lucide-react";
 
@@ -55,7 +57,7 @@ export default function Page() {
       setShowCreateModal(false);
       await refetch();
     } catch (err) {
-      toast.error("Failed to create group", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to create group" });
     } finally {
       setCreateSubmitting(false);
     }
@@ -77,7 +79,7 @@ export default function Page() {
       setManageGroup(null);
       await refetch();
     } catch (err) {
-      toast.error("Failed to update group", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to update group" });
     } finally {
       setManageSubmitting(false);
     }
@@ -92,7 +94,7 @@ export default function Page() {
       setDeleteGroup(null);
       await refetch();
     } catch (err) {
-      toast.error("Failed to delete group", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to delete group" });
     } finally {
       setDeleteSubmitting(false);
     }
@@ -128,7 +130,7 @@ export default function Page() {
           data={groups}
           keyExtractor={(group) => group.id}
           loading={!locked && isLoading}
-          error={locked ? undefined : error?.message}
+          error={locked || !error ? undefined : presentError(error)}
           locked={locked}
           lockedTooltip={lockedTooltip}
           searchValue={searchQuery}

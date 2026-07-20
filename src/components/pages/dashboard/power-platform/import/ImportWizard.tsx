@@ -7,6 +7,7 @@ import { Button } from "@/src/components/ui/inputs/Button";
 import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { EnvironmentSelect } from "@/src/components/power-platform/EnvironmentSelect";
 import { getImportTables, getImportColumns, runImport, type ImportTable, type ImportColumn } from "@/src/services/import/importApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 import type { ImportJob } from "@/src/types/powerPlatform";
 import { parseCsvHeaders } from "./csvUtils";
 
@@ -115,7 +116,7 @@ export function ImportWizard({ environmentUrl, onEnvironmentChange, onComplete, 
       });
       onComplete(job);
     } catch (err) {
-      toast.error("Import failed to start", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Import failed to start" });
     } finally {
       setRunning(false);
     }

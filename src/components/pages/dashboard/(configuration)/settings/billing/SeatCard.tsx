@@ -6,6 +6,7 @@ import { Minus, Plus, Users } from "lucide-react";
 import { Button } from "@/src/components/ui/inputs/Button";
 import { useBillingState, useSeatInfo } from "@/src/hooks/data/useBilling";
 import { setSeats } from "@/src/services/billing/billingApi";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 interface SeatCardProps {
   isOwner: boolean;
@@ -62,7 +63,7 @@ export function SeatCard({ isOwner }: SeatCardProps) {
       toast.success("Seats updated");
       await refetch();
     } catch (err) {
-      toast.error("Couldn't update seats", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Couldn't update seats" });
       setTarget(seats.total);
     } finally {
       setBusy(false);

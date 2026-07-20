@@ -8,6 +8,7 @@ import { Dropdown } from "@/src/components/ui/inputs/Dropdown";
 import { useTenantRoles, useInvalidateMembers } from "@/src/hooks/data/useMembers";
 import { createInvitation } from "@/src/services/invitations/invitationApi";
 import { useAuth } from "@/src/hooks/useAuth";
+import { showApiError } from "@/src/lib/errors/showApiError";
 
 const VIEWER_ROLE_NAME = "Viewer";
 
@@ -52,7 +53,7 @@ export function InviteMemberModal({ isOpen, onClose }: InviteMemberModalProps) {
       await invalidate();
       handleClose();
     } catch (err) {
-      toast.error("Failed to send invitation", { description: err instanceof Error ? err.message : "Please try again." });
+      showApiError(err, { title: "Failed to send invitation" });
     } finally {
       setSubmitting(false);
     }

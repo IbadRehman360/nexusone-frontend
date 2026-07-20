@@ -39,6 +39,10 @@ export interface ActivityLog {
   user: string;
   action: string;
   resource: string;
+  /** The specific resource *name* (entityName), when one was recorded — e.g.
+   * "test group new". Absent for actions with no named target (login, etc.).
+   * Used as the friendly secondary line under the action label. */
+  resourceName?: string;
   environment: string;
   environmentUrl?: string;
   status: ActivityStatus;
@@ -68,6 +72,7 @@ export function mapAuditLogToActivity(log: AuditLog): ActivityLog {
     user: log.userName ?? log.userEmail,
     action: log.action,
     resource: log.entityName ?? log.entity,
+    resourceName: log.entityName ?? undefined,
     environment: metadataField(log.metadata, "environmentName") ?? "—",
     environmentUrl: metadataField(log.metadata, "environmentUrl"),
     status: log.statusCode >= 400 ? "failed" : "success",

@@ -15,11 +15,14 @@ export interface ErrorPresentation {
   severity: ErrorSeverity;
   retryable: boolean;
   correlationId?: string;
+  /** The backend's stable error code — attached to a support report so the
+   * backend can dedup repeat reports of the same underlying bug. */
+  errorCode?: string;
 }
 
 export function getErrorPresentation(error: unknown): ErrorPresentation {
   const err = asApiError(error);
-  const base = { correlationId: err.correlationId };
+  const base = { correlationId: err.correlationId, errorCode: err.errorCode };
 
   switch (err.errorCode) {
     // ── Microsoft Graph ────────────────────────────────────────────────────
@@ -82,6 +85,21 @@ export function getErrorPresentation(error: unknown): ErrorPresentation {
         retryable: false,
       };
 
+    // ── Internal faults — NEVER echo the raw backend message ─────────────────
+    // The backend already genericizes 5xx bodies (http-exception.filter), but
+    // we defend in depth: if either of these codes ever arrives, show generic
+    // copy + the reference ID, regardless of what `message` contains.
+    case "INTERNAL_ERROR":
+    case "DATABASE_ERROR":
+      return {
+        ...base,
+        title: "Something went wrong on our end",
+        message:
+          "An unexpected error occurred. Please try again — if it keeps happening, please report it.",
+        severity: "error",
+        retryable: true,
+      };
+
     // ── Input / conflict ─────────────────────────────────────────────────────
     case "VALIDATION_FAILED":
       return {
@@ -128,4 +146,33 @@ export function getErrorPresentation(error: unknown): ErrorPresentation {
     severity: "error",
     retryable: false,
   };
+}
+
+/**
+ * Convenience for surfaces that can only render a plain string (e.g. a table's
+ * `error` prop). Returns the same friendly, leak-safe message
+ * `getErrorPresentation` would show — use this instead of `error.message`
+ * anywhere a raw message would otherwise be displayed inline.
+ */
+export function presentErrorMessage(error: unknown): string {
+  return getErrorPresentation(error).message;
+}
+
+/** Friendly, leak-safe message plus the reference id the user quotes to
+ * support. The shape inline error surfaces (DataTable, InlineError) accept. */
+export interface PresentedError {
+  message: string;
+  referenceId?: string;
+}
+
+/**
+ * Like {@link presentErrorMessage} but also returns the reference id. Use this
+ * (instead of `presentErrorMessage`) wherever an inline error surface can show
+ * the reference id — a DataTable `error` prop, or `<InlineError error={...} />`.
+ */
+export function presentError(error: unknown): PresentedError {
+  const presentation = getErrorPresentation(error);
+  return presentation.correlationId
+    ? { message: presentation.message, referenceId: presentation.correlationId }
+    : { message: presentation.message };
 }
