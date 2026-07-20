@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { PlugZap, Sparkles } from "lucide-react";
+import { PlugZap, Sparkles, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/inputs/Button";
@@ -47,6 +47,22 @@ export function ModuleConnectBanner({ module }: { module: SubscriptionModule }) 
       setConnecting(false);
     }
   };
+
+  if (phase === "suspended") {
+    return (
+      <div className="flex items-center gap-3 bg-warning/10 border border-warning/30 rounded-xl p-4">
+        <div className="shrink-0 w-9 h-9 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center text-warning-400">
+          <ShieldAlert size={18} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">This connection is temporarily suspended</p>
+          <p className="text-xs text-muted-foreground">
+            {`Your ${label} connection has been paused by NexusOne. Your subscription is unaffected — contact support to resolve this.`}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-between gap-4 bg-(--custom-table-bg) border border-(--custom-table-border) rounded-xl p-4">

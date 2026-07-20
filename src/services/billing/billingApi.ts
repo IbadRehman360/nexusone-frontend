@@ -30,6 +30,10 @@ export interface ModuleBillingInfo {
   stripeSubscriptionStatus: string;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
+  /** Live Stripe subscription-item amount for this module, in USD cents —
+   *  reflects a staff-set custom price override if one is active, not just
+   *  the flat catalog price. */
+  monthlyUSDcents: number;
 }
 
 export interface BillingState {
@@ -91,6 +95,18 @@ export interface SeatInfo {
   remaining: number;
   pricePerSeatCents: number;
   canManage: boolean;
+  /** 'managed' means a staff-negotiated arrangement governs `total` instead
+   *  of the self-service formula — show a read-only summary, not the stepper. */
+  billingMode: "self_service" | "managed";
+  /** Present only when billingMode is 'managed' — the active deal's terms,
+   *  so the customer can see what they're actually contracted for instead of
+   *  a bare "contact support" message. Null under self_service. */
+  managedDeal: {
+    paymentTerms: "net_30" | "net_60" | "wire" | "ach" | "custom";
+    moduleFeeCents: number | null;
+    effectiveStart: string;
+    notes: string | null;
+  } | null;
 }
 
 export const listPlans = async (): Promise<BillingPlansResponse> => {
@@ -125,6 +141,10 @@ export const reactivateSubscription = async (): Promise<void> => {
 
 export const cancelModule = async (moduleKey: string): Promise<void> => {
   await apiClient.post(BILLING_ROUTES.MODULE_CANCEL(moduleKey));
+};
+
+export const reactivateModule = async (moduleKey: string): Promise<void> => {
+  await apiClient.post(BILLING_ROUTES.MODULE_REACTIVATE(moduleKey));
 };
 
 export const retryModuleInvoice = async (moduleKey: string): Promise<void> => {

@@ -21,11 +21,11 @@ const buttonVariants = cva(
           "text-foreground/70 hover:text-foreground hover:bg-muted/20",
         // ── Danger ─────────────────────────────────────────────────────────────
         danger:
-          "bg-destructive text-primary shadow-xs hover:bg-destructive/80 focus-visible:ring-destructive/20",
+          "bg-error-400 text-white shadow-xs hover:bg-error-500 focus-visible:ring-error-400/40",
         "danger-outline":
-          "border border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50",
+          "border border-error-400/30 bg-error/10 text-error-400 hover:bg-error/20 disabled:opacity-50",
         "danger-ghost":
-          "text-destructive hover:bg-destructive/10",
+          "text-error-400 hover:bg-error/10",
         // ── Misc ───────────────────────────────────────────────────────────────
         secondary:
           "bg-background text-muted-foreground shadow-xs hover:bg-background/80",

@@ -13,6 +13,10 @@ export function useSupportTicketDetail(id: string | null) {
     queryKey: ["support-ticket", id],
     queryFn: () => getSupportTicketDetail(id!),
     enabled: !!id,
+    // No push signal exists for a staff reply landing on an already-open
+    // ticket — poll while the slide-over is open so the customer sees a
+    // staff reply without closing/reopening it. Stops once `id` clears.
+    refetchInterval: id ? 8_000 : false,
   });
   return { detail: query.data ?? null, isLoading: query.isLoading, refetch: query.refetch };
 }

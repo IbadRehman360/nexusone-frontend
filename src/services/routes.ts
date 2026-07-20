@@ -79,6 +79,7 @@ export const BILLING_ROUTES = {
   CANCEL: "/billing/cancel",
   REACTIVATE: "/billing/reactivate",
   MODULE_CANCEL: (module: string) => `/billing/modules/${module}/cancel`,
+  MODULE_REACTIVATE: (module: string) => `/billing/modules/${module}/reactivate`,
   MODULE_RETRY_INVOICE: (module: string) => `/billing/modules/${module}/retry-invoice`,
   RETRY_INVOICE: "/billing/retry-invoice",
   INVOICES: "/billing/invoices",

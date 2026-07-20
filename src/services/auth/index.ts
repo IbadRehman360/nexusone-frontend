@@ -15,6 +15,11 @@ export interface SubscriptionView {
    * A module can be in `paidModules` but not here: purchased, Connect
    * banner should show, sample data serves until the customer connects it. */
   connectedModules: string[];
+  /** Modules whose connection a NexusOne staff member has suspended — billing
+   * and Microsoft-tenant access are unaffected, but should be shown distinctly
+   * from "never connected" so the customer isn't steered back through the
+   * Microsoft consent flow. Disjoint from `connectedModules`. */
+  suspendedModules: string[];
   /** Modules that have ever had a Stripe trial granted (see `ModuleTrialGrant`) —
    * re-purchasing one of these gets a plain immediate charge, not a second
    * free 14-day trial. Drives "Start Trial" vs "Purchase" copy. */

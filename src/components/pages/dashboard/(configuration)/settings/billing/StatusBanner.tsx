@@ -9,26 +9,26 @@ import { createPortalSession, reactivateSubscription, cancelSubscription } from 
 import { useInvalidateBilling } from "@/src/hooks/data/useBilling";
 import type { BillingState } from "@/src/services/billing/billingApi";
 
-export type DisplayState = "trial-active" | "trial-ending" | "grace" | "active" | "past-due" | "canceled" | "expired";
+export type DisplayState = "preview-active" | "preview-ending" | "grace" | "active" | "past-due" | "canceled" | "expired";
 
 export function computeDisplayState(state: BillingState): DisplayState {
   if (state.nexusStatus === "GRACE") return "grace";
   if (state.nexusStatus === "LOCKED") return "expired";
 
   if (state.stripeStatus) {
-    if (state.stripeStatus === "trialing") return (state.daysRemaining ?? 0) <= 3 ? "trial-ending" : "trial-active";
+    if (state.stripeStatus === "trialing") return (state.daysRemaining ?? 0) <= 3 ? "preview-ending" : "preview-active";
     if (state.stripeStatus === "active") return state.cancelAtPeriodEnd ? "canceled" : "active";
     if (state.stripeStatus === "past_due") return "past-due";
     if (state.stripeStatus === "canceled" || state.stripeStatus === "unpaid") return "expired";
   }
-  if (state.nexusStatus === "TRIAL") return (state.daysRemaining ?? 0) <= 3 ? "trial-ending" : "trial-active";
+  if (state.nexusStatus === "TRIAL") return (state.daysRemaining ?? 0) <= 3 ? "preview-ending" : "preview-active";
   if (state.nexusStatus === "ACTIVE") return "active";
-  return "trial-active";
+  return "preview-active";
 }
 
 const BANNER: Record<DisplayState, { icon: typeof Clock; variant: "info" | "warning" | "error" | "success"; label: string }> = {
-  "trial-active": { icon: Clock, variant: "info", label: "You're on a free trial." },
-  "trial-ending": { icon: AlertTriangle, variant: "warning", label: "Your trial is ending soon." },
+  "preview-active": { icon: Clock, variant: "info", label: "You're on a free preview." },
+  "preview-ending": { icon: AlertTriangle, variant: "warning", label: "Your preview is ending soon." },
   grace: { icon: AlertTriangle, variant: "warning", label: "Payment issue — you're in a grace period." },
   active: { icon: CheckCircle2, variant: "success", label: "Your subscription is active." },
   "past-due": { icon: AlertTriangle, variant: "error", label: "Your last payment failed." },
